@@ -1,10 +1,10 @@
 DirSynch
 
-See DirSynch-help.html
+See DirSynch-help.html for roadmap.
 
 ================
 
-Test data set:
+Test data sets:
 
 - Files with same size, different times
 - Files with same time, different sizes

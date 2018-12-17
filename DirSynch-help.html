@@ -17,7 +17,7 @@
 			<li>Analyse the list and uncheck the files you don't want to synchronize.
 			<li>Hit the "Synchronize" button and wait until it finishes.
 			<li>A message will be shown: "Success" or "Failure".
-			<li>When you click "OK" in the message window, the list will be reloaded.
+			<li>If the operation is successful, when you click "OK" in the message window the list will be reloaded.
 		</ol>
                 <h3>Needed files</h3>
                 <ul>
@@ -25,17 +25,39 @@
                     <li>DirSynch-help.html</li>
                     <li>lib\swing-layout-1.0.jar</li>
                 </ul>
-                <p>The "swing-layout-1.0.jar" comes from NetBeans.
+                <p>The "swing-layout-1.0.jar" comes from <a href="http://www.netbeans.org">NetBeans</a>.
 		<h3>Command line parameters</h3>
-		I usually use this to create specific icons on my desktop, for each dir I usually synchronize.
+		I use this to create specific icons on my desktop, for each dir I usually synchronize.
 <pre>java[w] -jar DirSynch.jar [Params]
 Params:
   -main [main dir path]  Set the main dir.
   -sec [sec dir path]    Set the secondary dir.
   -help                  Show this usage message.
   -keep                  Keep backups.</pre>
+                <h3>Tools</h3>
+                <dl>
+                    <dt>Select</dt>
+                    <dd><dl>
+                            <dt>All</dt>
+                            <dd>Select all files, except the equal ones.</dd>
+                            <dt>None</dt>
+                            <dd>Unselect all files.</dd>
+                            <dt>Only YES/no</dt>
+                            <dd>Select only the files that exists in one dir and not in the other.</dd>
+                            <dt>Only in main dir</dt>
+                            <dd>Select only the files that exists in the main dir and not in the second.</dd>
+                            <dt>Only in sec dir</dt>
+                            <dd>Select only the files that exists in the second dir and not in the main.</dd>
+                            <dt>Newer in main</dt>
+                            <dd>Select only the files that are newer in main dir than in the second.</dd>
+                            <dt>Newer in sec</dt>
+                            <dd>Select only the files that are newer in the second dir than in the main.</dd>
+                    </dl></dd>
+                </dl>
 		<h3>Options</h3>
 		<dl>
+                        <dt>Include subdirs</dt>
+                        <dd>If set, include all subdirectories, if not, ignore the subdirectories. Default: checked.</dd>
 			<dt>Use hash</dt>
 			<dd>If this option is set, the file comparison will be performed in the following way:
 			<ol>
@@ -67,18 +89,42 @@ Params:
 		<p>All files and directories with the names listed will be skipped.  For example: if you put "TEMP" in the _nosynch file and there are two directories with this name, in the main dir and inside a subdir "MyDir", both will be skipped and all its subdirs.
                 <p>The nosynch files are read every time the list is loaded, so you can change it "on the fly", without closing the program.
                 <a name="roadmap"><h2>Roadmap</h2></a>
+<h3>Next release (v1.4):</h3>
+<ul>
+    <!-- TODO --><li> New option: Only adjust times if files have same hash value
+    <!-- TODO --><li> Hash only small files (smaller than ...)
+    <!-- TODO --><li> DirSynch.recent
+    <!-- TODO --><li> Log levels: NONE, ERROR, WARNING, INFO, DEBUG
+    <!-- TODO --><li> DirSynch.properties
+    <ul><li>Options:<pre>
+hash.enabled=[boolean] (default: false)
+hash.onlysmall=[boolean] (default: true)
+hash.smallmaxsize=[size in Kb] (default: 256)
+subdirs.include=[boolean] (default: true)
+hide.equals=[boolean] (default: false)
+log.level=[NONE, ERROR, WARNING, INFO, DEBUG] (default: WARNING)
+log.file=[path to file] (default: .\DirSynch.log)
+</pre></ul>
+</ul>
 <h3>Future releases:</h3>
 <ul>
-<li> Dir set to synch
-<li> DirSynch.recent
-<li> DirSynch.properties
-<li> Progress bar in synch (show the file name being copied and the percent of number of files)
-<li> Progress bar in load.
-<li> Verify after copy (with hash?)
-<li> Only YES/no
-<li> Disable Load button if any dir empty or inexistent
-<li> Tree view instead of a table
-<li> Option "Include subdirs"
+    <!-- TODO --><li> Dir set to synch
+    <!-- TODO --><li> Verify after copy (with hash?)
+    <!-- TODO --><li> DirSynch.properties
+    <ul><li>Options:<pre>
+verify.copy=[boolean] (default: false)
+</pre></ul>
+    <!-- TODO --><li> Disable Load button if any dir empty or inexistent
+    <!-- TODO --><li> Tree table view instead of a table (similar to EnCase&reg;)
+    <!-- TODO --><li> Synch a directory with a zip file
+</ul>
+<h3>v1.3 (13/01/2008):</h3>
+<ul>
+    <li> Progress bar in synch (show the file name being copied and the percent of number of files)
+    <li> Progress bar in load.
+    <li> Select / Unselect : all/YES-no/New-old
+    <li> Option "Include subdirs" (default true)
+    <li> New interface for options (menu)
 </ul>
 <h3>v1.2:</h3>
 <ul><li> Show file status:

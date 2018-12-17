@@ -10,31 +10,17 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public final class CryptoUtil {
-    // Generates OutOfMemory for large files
-    /*public static String generateHashHexTosco(File file, String algorithm)
-    throws NoSuchAlgorithmException, FileNotFoundException, IOException {
-        MessageDigest md = MessageDigest.getInstance(algorithm); // SHA or MD5
-        String hash = "";
-        
-        byte[] data = new byte[(int)file.length()];
-        FileInputStream fis = new FileInputStream(file);
-        fis.read(data);
-        fis.close();
-        
-        md.update(data); // Reads it all at one go. Might be better to chunk it.
-        
-        byte[] digest = md.digest();
-        
-        for (int i = 0; i < digest.length; i++) {
-            String hex = Integer.toHexString(digest[i]);
-            if (hex.length() == 1) hex = "0" + hex;
-            hex = hex.substring(hex.length() - 2);
-            hash += hex;
-        }
-        
-        return hash;
-    }*/
-    
+    /**
+     * Generate a hash of a file using a selectable algorithm and returns its
+     * results as a hexadecimal string representation.
+     * @param file The File that will have its hash calculated.
+     * @param algorithm The algorithm to be used (can be MD5 and SHA-1).
+     * @return The calculated hash in hexadecimal representation.
+     * @throws java.security.NoSuchAlgorithmException If the algorithm isn't supported by java.security.MessageDigest.
+     * @throws java.io.FileNotFoundException If the file can't be found.
+     * @throws java.io.IOException If there are some error accessing the file.
+     * @see java.security.MessageDigest
+     */
     public static String generateHashHex(File file, String algorithm)
     throws NoSuchAlgorithmException, FileNotFoundException, IOException {
         MessageDigest digest = MessageDigest.getInstance(algorithm);
