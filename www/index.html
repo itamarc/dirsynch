@@ -1,39 +1,105 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-
 <html>
-  <head>
-    <title>DirSynch</title>
-    <style>
+<head>
+<title>DirSynch Project Home Page</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style>
         BODY { font-family: Verdana, Arial; color: Navy; }
-        H1, H2, H3 { color: blue; }
+        H1, H3 { color: blue; }
+	H2.headersection {
+		display: inline;
+		border: thin solid #696;
+		background-color: #696;
+		color: white;
+		font-size: 12pt;
+		padding: 5px;
+		margin: 2px;
+                cursor: pointer;
+	}
         A { font-weight: bold; text-decoration: none; color: darkcyan; }
         .footnote { font-size: 10pt; }
-    </style>
-  </head>
-  <body>
-      <h1>DirSynch</h1>
-      <h2>Introduction</h2>
+</style>
+<script lang="Javascript">
+	var sections = new Array();
+	sections[0] = "introduction";
+	sections[1] = "screenshots";
+	sections[2] = "download";
+	sections[3] = "howtouse";
+	sections[4] = "roadmap";
+	sections[5] = "techdetails";
+	function toggleDisplay(selected_id) {
+	    var h;
+		for (sec_id in sections) {
+			var the_div=document.getElementById(sections[sec_id]);
+			if (sections[sec_id] == selected_id) {
+				the_div.style.display="block";
+				h=document.getElementById("h"+sections[sec_id]);
+				h.style.border="thin solid #ffff80";
+				h.style.color="#ffff80";
+			} else {
+				the_div.style.display="none";
+				h=document.getElementById("h"+sections[sec_id]);
+				h.style.border="thin solid #696";
+				h.style.color="white";
+			}
+		}
+	}
+</script>
+</head>
+<body>
+	      <h2 class="headersection" id="hintroduction" onclick="javascript:toggleDisplay('introduction');">Introduction</h2>
+      <h2 class="headersection" id="hscreenshots" onclick="javascript:toggleDisplay('screenshots');">Screenshots</h2>
+      <h2 class="headersection" id="hdownload" onclick="javascript:toggleDisplay('download');">Download</h2>
+      <h2 class="headersection" id="hhowtouse" onclick="javascript:toggleDisplay('howtouse');">How to use</h2>
+      <h2 class="headersection" id="hroadmap" onclick="javascript:toggleDisplay('roadmap');">Roadmap</h2>
+      <h2 class="headersection" id="htechdetails" onclick="javascript:toggleDisplay('techdetails');">Tech details</h2>
+
+      <div id="introduction" style="display: block;">
       <p>DirSynch is a bi-directional directory synchronizing software.</p>
       <p>It helps you to discover the status of each file in both directories:
       if it's only in one of them, if it's newer in one than in the other or if
       they are simply equals.</p>
-      <p>After leting you to choose which files do you want to synchronize, it 
+      <p>After letting you to choose which files do you want to synchronize, it 
       performs the right operations to make both dirs equals (or not, if you
       want it different).</p>
-      <p>It even don't require you to trust it, because you can order him to
+      <p>It doesn't even require you to trust it, because you can order him to
       create a backup of the files before overwriting it.</p>
-      <p>This project is hosted under <a href="http://cejug.org">CEJUG</a> in <a href="http://dev.java.net">Java.Net</a>.</p>
-      <p>This software is released under the <a href="http://www.gnu.org/licenses/gpl.html">GPL</a>.</p>
+      <p>This project is hosted under <a href="http://cejug.org">CEJUG</a> in <a href="http://cejug.dev.java.net">Java.Net</a>.</p>
       <p class="footnote">&copy; 2008 Itamar Carvalho - itamarc+dirsynch AT gmail&middot;com</p>
-      <h2>Screenshots</h2>
+      </div>
+      <div id="screenshots" style="display: none;">
       <p>Only one for now. Take a look at the main screen:</p>
       <img src="main-screen-1.5.png">
-      <h2>How to use</h2>
+      </div>
+      <div id="download" style="display: none;">
+      <p>You can find the released files in "Documents &amp; files" section.</p>
+      <p>The last release is <a href="https://dirsynch.dev.java.net/servlets/ProjectDocumentList?folderID=9288&expandFolder=9288&folderID=9288">v1.5.2, available here</a>.</p>
+      </div>
+      <div id="howtouse" style="display: none;">
       <p><a href="DirSynch-help.html">Here</a> you can see the help file,
-      including how to use the program.</p>
-      <h2>Roadmap</h2>
-      <p><a href="DirSynch-help.html#roadmap">Here</a> you can see the help file,
-      including a roadmap with the evolution of it until now and the future plans.</p>
-      <h2>Tech details</h2>
-  </body>
+      including how to use the program.</p></div>
+      <div id="roadmap" style="display: none;">
+      <p><a href="DirSynch-help.html#roadmap">Here</a> you can see the help file, including the versions history with the evolution of DirSynch until now.</p>
+      <p>To see the future plans, please access our <a href="http://dirsynch.dev.java.net/servlets/ProjectIssues" target="_blank">issue tracker page</a>.</p>
+      </div>
+      <div id="techdetails" style="display: none;">
+      <p>If you're a developer, maybe the DirSynch source can be useful to you. Look at the things you can find in it:
+<ul>
+<li>MD5 hash calculation;
+<li>Disk access, both reading file's data and listing files in a directory;
+<li>Recursive function to read the directory tree;
+<li>Swing interface;
+<li>Parameters from command line and from ".properties" file;
+<li>Read and save options in a ".properties" file without needing to restart the program;
+<li>Show help from an HTML file in a window;
+<li>Regular expressions evaluation;
+<li>Use of threads for long operations, with progress bar and cancel option;
+<li>And other things I can't remember now...
+</ul></p>
+</div>
+<script lang="Javascript">
+	var h=document.getElementById("hintroduction");
+	h.style.border="thin solid #ffff80";
+	h.style.color="#ffff80";
+</script>
+</body>
 </html>

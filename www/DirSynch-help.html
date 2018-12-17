@@ -21,7 +21,8 @@
 	</head>
 	<body>
 		<h1>DirSynch</h1>
-                <img src="main-screen-small-1.5.png">
+		<a href="http://dirsynch.dev.java.net">Visit the DirSynch project page at Java.Net<br>
+                <img src="main-screen-small-1.5.png" style="border: none;"></a>
                 <a name="howtouse"><h2>How to use</h2></a>
 		<h3>Tipical usage</h3>
 		<ol>
@@ -35,9 +36,9 @@
                 <h3>Needed files</h3>
                 <ul>
                     <li>DirSynch.jar</li>
-                    <li>lib\swing-layout-1.0.jar</li>
+                    <li>lib\swing-layout-1.0.3.jar</li>
                 </ul>
-                <p>The "swing-layout-1.0.jar" comes from <a href="http://www.netbeans.org">NetBeans</a>.
+		<p>The "swing-layout-1.0.3.jar" comes from <a href="http://www.netbeans.org">NetBeans</a>.</p>
                 <h3>Files for this help</h3>
                 <ul>
                     <li>DirSynch-help.html</li>
@@ -135,31 +136,12 @@ Params:
                 <p>If two files have the same times, but different sizes, they are marked as "BIG" (bigger) and "sml" (smaller).
             DirSynch ignores those files when synchronizing.</p>
                 <a name="roadmap"><h2>Roadmap</h2></a>
-<h3>Next release (v1.6):</h3>
+		<p>To see the future plans, please access our <a href="http://dirsynch.dev.java.net/servlets/ProjectIssues" target="_blank">issue tracker page</a>.</p>
+		<p>History of versions:</p>
+<h3>v1.5.2 (28/05/2008):</h3>
 <ul class="tasks">
-    <!-- FIXME --><li class="todo"> Bug: if synching only times and the file is open, there is no error message and the synch fails.
-    <!-- TODO --><li class="todo"> _onlysynch
-    <!-- TODO --><li class="todo"> Wildcard characters (*, ?) in _onlysynch
-    <!-- TODO --><li class="todo"> Interface for the options that are only in the .properties file.
-</ul>
-<h3>Future releases:</h3>
-<ul class="tasks">
-    <!-- TODO --><li class="todo"> Hash only small files (smaller than ...)
-    <!-- TODO --><li class="todo"> Verify after copy (with hash?)
-    <!-- TODO --><li class="todo"> DirSynch.properties update (verify.copy)
-    <ul><li>Options:<pre>
-verify.copy=[boolean] (default: false)
-</pre></ul>
-    <!-- TODO --><li class="todo"> Option to overwrite or append to log file
-    <!-- TODO --><li class="todo"> DirSynch.recent
-    <!-- TODO --><li class="todo"> Interface to edit _nosynch's and _onlysynch's files
-    <!-- TODO --><li class="todo"> "Add to _nosynch" context menu
-    <!-- TODO --><li class="todo"> Dir set to synch
-    <!-- TODO --><li class="todo"> Disable Load button if any dir empty or inexistent
-    <!-- TODO --><li class="todo"> Tree table view instead of a table (similar to EnCase&reg;)
-    <!-- TODO --><li class="todo"> Synch a directory with a zip file
-    <!-- TODO --><li class="todo"> Let the user decide about the action in BIG/sml files
-    <!-- TODO --><li class="todo"> Toolbar with common tools (check all/none/with regexp/...)
+    <li class="done"> Added and changed some INFO and DEBUG levels log messages
+    <li class="done"> Bug: When there is no .nosynch (or _nosynch) file or there is no wildcard pattern in it, the load operation hangs.
 </ul>
 <h3>v1.5.1 (21/05/2008):</h3>
 <ul class="tasks">
@@ -189,6 +171,10 @@ synch.times.same.hash=[boolean] (default: true)
     <li class="done"> Save current config (including dirs) to .properties file
     <li class="done"> Load config from .properties file
     <li class="done"> Updated this help file to include all new features since v1.3
+    <li class="done"> Option to overwrite or append to log file (log.file.append)
+    <ul><li>Options:<pre>
+log.file.append=[boolean] (default: true)
+</pre></ul>
 </ul>
 <h3>v1.4.1 (31/01/2008):</h3>
 <ul class="tasks">
@@ -221,7 +207,7 @@ log.file=[path to file] (default: .\DirSynch.log)
     <li class="done"> Option "Include subdirs" (default true)
     <li class="done"> New interface for options (menu)
 </ul>
-<h3>v1.2:</h3>
+<h3>v1.2 (30/11/2007):</h3>
 <ul class="tasks">
 <li class="done"> Show file status:
 "Filename.ext - Main: 10/11/06 17:07:09 10.3Kb - Sec: 10/12/06 8:07:23 10.4Kb''
@@ -230,7 +216,7 @@ log.file=[path to file] (default: .\DirSynch.log)
 <li class="done"> Help
 <li class="done"> About
 </ul>
-<h3>v1.1:</h3>
+<h3>v1.1 (28/11/2007):</h3>
 <ul class="tasks">
 <li class="done"> Checkbox to select/unselect itens
 <li class="done"> Implement synch

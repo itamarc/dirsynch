@@ -1,0 +1,77 @@
+*** .nosynch
+Compare the file/dir name:
+- Exact match
+- Wildcard
+- Relative path *
+
+*** .onlysynch
+Compare the file/dir name:
+- Exact match
+- Wildcard
+- Relative path *
+
+
+* Not implemented yet
+
+------------------------------------------------------------------
+Don't synch these files/dirs:
+[_______________________] [] Wildcards [ Both files and dirs | V ]
+                                       | Only dirs           |
+                                       | Only files          |
+                                       +---------------------+
+[ Add ]
+
++-----------------+----+-----+
+| Name            | WC | F/D |
++-----------------+----+-----+
+| .nosynch        | N  | F   |
+| .*~             | Y  | FD  |
++-----------------+----+-----+
+
+Save in: (o) Main dir  () Sec dir  () User home dir
+
+[ Save ]  [ Cancel ]
+
+------------------------------------------------------------------
+
+[Optional tags](Filename OR |Pattern)
+
+Optional tags...
+
+...for type of object:
+<F> Apply to files only
+<D> Apply to dirs only
+<FD> Apply to files and dirs (default)
+
+...for what to match:
+<N> Match only the Name (default)
+<P> Match the name including the relative Path
+
+Hint: when working with paths, use the character "/" or "\" to separate dirs, according to the operating system. If using "\" and wildcards, escape it, putting "\\". If you want to be OS independent, use "</>" to separate dirs and DirSynch will change it to the right separator.
+
+Examples:
+
+Thumbs.db
+- Files or dirs with name "Thumbs.db"
+
+<FD><N>Thumbs.db
+- Files or dirs with name "Thumbs.db"
+
+<F>|.*~
+- Files with any name ending with the character "~" (tilde)
+
+<D>tmp
+- Dirs with name "tmp"
+
+<P>projects/devel/dirsynch
+- File or dir in the exact relative path "projects/devel/dirsynch" (if it's a dir, the files and subdirs inside it will be considered as well)
+
+<P>projects</>devel</>dirsynch
+- File or dir in the exact relative path "projects/devel/dirsynch" or "projects\devel\dirsynch", according to the operating system (if it's a dir, the files and subdirs inside it will be considered as well)
+
+<D><P>|.*tmp.*
+- Dirs with "tmp" in any place of the relative path (including the dir name)
+
+<F><P>|src/.*\.bak
+- Files in the dir src and subdirs with the extension ".bak"
+

@@ -3,144 +3,138 @@
  *
  * Created on 3 de Agosto de 2006, 20:32
  */
-
 package itamar.dirsynch;
 
-import com.oktiva.util.FileUtil;
 import itamar.util.Logger;
-import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.ProgressMonitor;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.table.TableCellRenderer;
 
 /**
  *
  * @author  Itamar Carvalho
  */
 public class MainJFrame extends javax.swing.JFrame {
+
     private File mainDir;
     private File secDir;
-    private Map<String, File> mainDirMap;
-    private Map<String, File> secDirMap;
     private static String defaultMainDirPath = null;
     private static String defaultSecDirPath = null;
-    
-    private static String version = "1.5.1";
+    private static String version = "1.6alpha5";
     private static boolean defaultKeep = false;
-    private SynchMapChecker noSynchMap = null;
     private boolean firstLoad = true;
+    private boolean firstInit = true;
     private final String helpFile = "DirSynch-help.html";
     private static String propertiesFilePath = "DirSynch.properties";
-    
+    static DirSynchExceptionHandler handler = null;
     /** Creates new form MainJFrame */
     public MainJFrame() {
-        initDirSynchProperties();
-        initComponents();
-        setTitle("DirSynch " + version);
-        jTableFiles.getColumn("Sel").setMaxWidth(30);
-        jTableFiles.getColumn("Main").setMaxWidth(30);
-        jTableFiles.getColumn("Sec").setMaxWidth(30);
-        setStatusBarText(FilePair.getLegend());
-        
-        ListSelectionModel rowSM = jTableFiles.getSelectionModel();
-        rowSM.addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent e) {
-                //Ignore extra messages.
-                if (e.getValueIsAdjusting()) return;
-                
-                ListSelectionModel lsm = (ListSelectionModel)e.getSource();
-                if (lsm.isSelectionEmpty()) {
-                    //System.out.println("No rows are selected.");
-                    setStatusBarText(FilePair.getLegend());
-                } else {
-                    int selectedRow = lsm.getMinSelectionIndex();
+	initDirSynchProperties();
+	initComponents();
+	setTitle("DirSynch " + version);
+	jTableFiles.getColumn("Sel").setMaxWidth(30);
+	jTableFiles.getColumn("Main").setMaxWidth(30);
+	jTableFiles.getColumn("Sec").setMaxWidth(30);
+	setStatusBarText(FilePair.getLegend());
+
+	ListSelectionModel rowSM = jTableFiles.getSelectionModel();
+	rowSM.addListSelectionListener(new ListSelectionListener() {
+
+	    public void valueChanged(ListSelectionEvent e) {
+		//Ignore extra messages.
+		if (e.getValueIsAdjusting()) {
+		    return;
+		}
+
+		ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+		if (lsm.isSelectionEmpty()) {
+		    //System.out.println("No rows are selected.");
+		    setStatusBarText(FilePair.getLegend());
+		} else {
+		    int selectedRow = lsm.getMinSelectionIndex();
 //                    System.out.println("Row " + selectedRow
 //                            + " is now selected.");
-                    updateStatus();
-                }
-            }
-        });
+		    updateStatus();
+		}
+	    }
+	});
 
-        initOptions();
+	initOptions();
+	firstInit = false;
     }
 
     private void initDirSynchProperties() {
-        try {
-            DirSynchProperties.init(propertiesFilePath);
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this,
-                    "File '"+propertiesFilePath+"' not found!",
-                    "Warning!",
-                    JOptionPane.WARNING_MESSAGE);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this,
-                    "Error reading file '"+propertiesFilePath+"':\n"+ex.getMessage(),
-                    "Warning!",
-                    JOptionPane.WARNING_MESSAGE);
-        }
-        Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile(), DirSynchProperties.isLogFileAppend());
-        Logger.log(Logger.LEVEL_INFO, "Properties initialized with file '"+propertiesFilePath+"'");
-        Logger.log(Logger.LEVEL_DEBUG, "Properties read: "+DirSynchProperties.getPropertiesAsString());
+	try {
+	    DirSynchProperties.init(propertiesFilePath);
+	} catch (FileNotFoundException ex) {
+	    ex.printStackTrace(); // Logger is not initialized at this point
+	    JOptionPane.showMessageDialog(this,
+		    "File '" + propertiesFilePath + "' not found!",
+		    "Warning!",
+		    JOptionPane.WARNING_MESSAGE);
+	} catch (IOException ex) {
+	    ex.printStackTrace(); // Logger is not initialized at this point
+	    JOptionPane.showMessageDialog(this,
+		    "Error reading file '" + propertiesFilePath + "':\n" + ex.getMessage(),
+		    "Warning!",
+		    JOptionPane.WARNING_MESSAGE);
+	}
+	if (!DirSynchProperties.getLogFile().equals(Logger.getLogFile())) {
+	    firstInit = true;
+	}
+	Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile(), DirSynchProperties.isLogFileAppend());
+	if (firstInit) {
+	    Logger.log(Logger.LEVEL_INFO, "==========  DirSynch v" + version + " started.  ==========");
+	}
+	Logger.log(Logger.LEVEL_INFO, "Properties initialized with file '" + propertiesFilePath + "'");
+	Logger.log(Logger.LEVEL_DEBUG, "Properties read: " + DirSynchProperties.getPropertiesAsString());
     }
-    
+
     private void initOptions() {
-        // defaultXXXDirPath comes from command-line parameters and has priority over .properties file
-        setMainDirPath((defaultMainDirPath == null ? DirSynchProperties.getMainDir() : defaultMainDirPath));
-        setSecDirPath((defaultSecDirPath == null ? DirSynchProperties.getSecDir() : defaultSecDirPath));
-        
-        Logger.log(Logger.LEVEL_DEBUG, "SubDirsInclude="+DirSynchProperties.isSubDirsInclude());
-        jChkBxMenuItemUseHash.setSelected(DirSynchProperties.isHashEnabled());
-        jChkBxMenuItemIncSubdirs.setSelected(DirSynchProperties.isSubDirsInclude());
-        jChkBxMenuItemHideEquals.setSelected(DirSynchProperties.isHideEquals());
-        jChkBxMenuItemSynchTimesHash.setSelected(DirSynchProperties.isSynchTimesSameHash());
-        
-        jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
+	// defaultXXXDirPath comes from command-line parameters and has priority over .properties file
+	setMainDirPath((defaultMainDirPath == null ? DirSynchProperties.getMainDir() : defaultMainDirPath));
+	setSecDirPath((defaultSecDirPath == null ? DirSynchProperties.getSecDir() : defaultSecDirPath));
+
+	Logger.log(Logger.LEVEL_DEBUG, "SubDirsInclude=" + DirSynchProperties.isSubDirsInclude());
+	jChkBxMenuItemUseHash.setSelected(DirSynchProperties.isHashEnabled());
+	jChkBxMenuItemIncSubdirs.setSelected(DirSynchProperties.isSubDirsInclude());
+	jChkBxMenuItemHideEquals.setSelected(DirSynchProperties.isHideEquals());
+	jChkBxMenuItemSynchTimesHash.setSelected(DirSynchProperties.isSynchTimesSameHash());
+
+	jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
     }
 
     private void setOptionsInProps() {
-        DirSynchProperties.setMainDir(getMainDirPath());
-        DirSynchProperties.setSecDir(getSecDirPath());
+	DirSynchProperties.setMainDir(getMainDirPath());
+	DirSynchProperties.setSecDir(getSecDirPath());
 
-        DirSynchProperties.setHashEnabled(isHashEnabled());
-        DirSynchProperties.setSubDirsInclude(isIncludeSubdirs());
-        DirSynchProperties.setHideEquals(isHideEquals());
-        DirSynchProperties.setSynchTimesSameHash(isSynchTimesSameHash());
+	DirSynchProperties.setHashEnabled(isHashEnabled());
+	DirSynchProperties.setSubDirsInclude(isIncludeSubdirs());
+	DirSynchProperties.setHideEquals(isHideEquals());
+	DirSynchProperties.setSynchTimesSameHash(isSynchTimesSameHash());
 //        jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
     }
-    
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    private void initComponents() {//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
         jDialogHelp = new javax.swing.JDialog();
         jScrollPaneHelp = new javax.swing.JScrollPane();
         jEdtPaneHelp = new javax.swing.JEditorPane();
@@ -189,31 +183,34 @@ public class MainJFrame extends javax.swing.JFrame {
         jDialogHelp.setTitle("DirSynch Help");
         jDialogHelp.setAlwaysOnTop(true);
         jDialogHelp.setModal(true);
+
         jScrollPaneHelp.setMinimumSize(new java.awt.Dimension(600, 400));
         jScrollPaneHelp.setPreferredSize(new java.awt.Dimension(600, 400));
+
         jEdtPaneHelp.setEditable(false);
         jEdtPaneHelp.setContentType("text/html");
         jScrollPaneHelp.setViewportView(jEdtPaneHelp);
 
-        org.jdesktop.layout.GroupLayout jDialogHelpLayout = new org.jdesktop.layout.GroupLayout(jDialogHelp.getContentPane());
+        javax.swing.GroupLayout jDialogHelpLayout = new javax.swing.GroupLayout(jDialogHelp.getContentPane());
         jDialogHelp.getContentPane().setLayout(jDialogHelpLayout);
         jDialogHelpLayout.setHorizontalGroup(
-            jDialogHelpLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jDialogHelpLayout.createSequentialGroup()
+            jDialogHelpLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jDialogHelpLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(jScrollPaneHelp, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPaneHelp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jDialogHelpLayout.setVerticalGroup(
-            jDialogHelpLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jDialogHelpLayout.createSequentialGroup()
+            jDialogHelpLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jDialogHelpLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(jScrollPaneHelp, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPaneHelp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("DirSync");
+
         jLabel1.setText("Main directory:");
 
         jLabel2.setText("Second directory:");
@@ -241,26 +238,26 @@ public class MainJFrame extends javax.swing.JFrame {
 
         jLblStatusBar.setText(" ");
 
-        org.jdesktop.layout.GroupLayout statusBarLayout = new org.jdesktop.layout.GroupLayout(statusBar);
+        javax.swing.GroupLayout statusBarLayout = new javax.swing.GroupLayout(statusBar);
         statusBar.setLayout(statusBarLayout);
         statusBarLayout.setHorizontalGroup(
-            statusBarLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(statusBarLayout.createSequentialGroup()
+            statusBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(statusBarLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(jLblStatusBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 604, Short.MAX_VALUE)
+                .addComponent(jLblStatusBar, javax.swing.GroupLayout.DEFAULT_SIZE, 604, Short.MAX_VALUE)
                 .addContainerGap())
         );
         statusBarLayout.setVerticalGroup(
-            statusBarLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, jLblStatusBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
+            statusBarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jLblStatusBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
         );
 
-        jBtnMainDir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/dir.png")));
+        jBtnMainDir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/dir.png"))); // NOI18N
         jBtnMainDir.setToolTipText("Select main dir...");
         jBtnMainDir.setIconTextGap(0);
         jBtnMainDir.setMargin(new java.awt.Insets(0, 0, 0, 0));
         jBtnMainDir.setMinimumSize(new java.awt.Dimension(20, 20));
-        jBtnMainDir.setName("jBtnMainDir");
+        jBtnMainDir.setName("jBtnMainDir"); // NOI18N
         jBtnMainDir.setPreferredSize(new java.awt.Dimension(20, 20));
         jBtnMainDir.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -268,12 +265,12 @@ public class MainJFrame extends javax.swing.JFrame {
             }
         });
 
-        jBtnSecDir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/dir.png")));
+        jBtnSecDir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/dir.png"))); // NOI18N
         jBtnSecDir.setToolTipText("Select second dir...");
         jBtnSecDir.setIconTextGap(0);
         jBtnSecDir.setMargin(new java.awt.Insets(0, 0, 0, 0));
         jBtnSecDir.setMinimumSize(new java.awt.Dimension(20, 20));
-        jBtnSecDir.setName("jBtnSecDir");
+        jBtnSecDir.setName("jBtnSecDir"); // NOI18N
         jBtnSecDir.setPreferredSize(new java.awt.Dimension(20, 20));
         jBtnSecDir.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -335,8 +332,10 @@ public class MainJFrame extends javax.swing.JFrame {
 
         jMenuTools.setMnemonic('t');
         jMenuTools.setText("Tools");
+
         jMenuSelect.setMnemonic('s');
         jMenuSelect.setText("Select");
+
         jMenuItemAll.setMnemonic('a');
         jMenuItemAll.setText("All");
         jMenuItemAll.addActionListener(new java.awt.event.ActionListener() {
@@ -344,7 +343,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemAllActionPerformed(evt);
             }
         });
-
         jMenuSelect.add(jMenuItemAll);
 
         jMenuItemNone.setMnemonic('n');
@@ -354,9 +352,7 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemNoneActionPerformed(evt);
             }
         });
-
         jMenuSelect.add(jMenuItemNone);
-
         jMenuSelect.add(jSeparator1);
 
         jMenuItemYesNo.setMnemonic('y');
@@ -366,7 +362,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemYesNoActionPerformed(evt);
             }
         });
-
         jMenuSelect.add(jMenuItemYesNo);
 
         jMenuItemOnlyInMain.setMnemonic('m');
@@ -376,7 +371,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemOnlyInMainActionPerformed(evt);
             }
         });
-
         jMenuSelect.add(jMenuItemOnlyInMain);
 
         jMenuItemOnlyInSec.setMnemonic('s');
@@ -386,9 +380,7 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemOnlyInSecActionPerformed(evt);
             }
         });
-
         jMenuSelect.add(jMenuItemOnlyInSec);
-
         jMenuSelect.add(jSeparator2);
 
         jMenuItemNewerInMain.setMnemonic('n');
@@ -398,7 +390,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemNewerInMainActionPerformed(evt);
             }
         });
-
         jMenuSelect.add(jMenuItemNewerInMain);
 
         jMenuItemNewerInSec.setMnemonic('e');
@@ -408,9 +399,7 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemNewerInSecActionPerformed(evt);
             }
         });
-
         jMenuSelect.add(jMenuItemNewerInSec);
-
         jMenuSelect.add(jSeparator3);
 
         jMenuItemSelRegexp.setText("Sel with regexp...");
@@ -419,7 +408,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemSelRegexpActionPerformed(evt);
             }
         });
-
         jMenuSelect.add(jMenuItemSelRegexp);
 
         jMenuItemUnselRegexp.setText("Unsel with regexp...");
@@ -428,7 +416,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemUnselRegexpActionPerformed(evt);
             }
         });
-
         jMenuSelect.add(jMenuItemUnselRegexp);
 
         jMenuTools.add(jMenuSelect);
@@ -437,6 +424,7 @@ public class MainJFrame extends javax.swing.JFrame {
 
         jMenuOptions.setMnemonic('o');
         jMenuOptions.setText("Options");
+
         jChkBxMenuItemIncSubdirs.setMnemonic('I');
         jChkBxMenuItemIncSubdirs.setSelected(true);
         jChkBxMenuItemIncSubdirs.setText("Include subdirs");
@@ -445,7 +433,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jChkBxMenuItemIncSubdirsItemStateChanged(evt);
             }
         });
-
         jMenuOptions.add(jChkBxMenuItemIncSubdirs);
 
         jChkBxMenuItemUseHash.setMnemonic('h');
@@ -455,7 +442,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jChkBxMenuItemUseHashItemStateChanged(evt);
             }
         });
-
         jMenuOptions.add(jChkBxMenuItemUseHash);
 
         jChkBxMenuItemHideEquals.setMnemonic('e');
@@ -465,7 +451,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jChkBxMenuItemHideEqualsStateChanged(evt);
             }
         });
-
         jMenuOptions.add(jChkBxMenuItemHideEquals);
 
         jChkBxMenuItemKeepBackup.setMnemonic('b');
@@ -477,7 +462,6 @@ public class MainJFrame extends javax.swing.JFrame {
         jChkBxMenuItemSynchTimesHash.setSelected(true);
         jChkBxMenuItemSynchTimesHash.setText("Synch times for same hashes");
         jMenuOptions.add(jChkBxMenuItemSynchTimesHash);
-
         jMenuOptions.add(jSeparator4);
 
         jMenuItemLoadOpt.setMnemonic('L');
@@ -487,7 +471,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemLoadOptActionPerformed(evt);
             }
         });
-
         jMenuOptions.add(jMenuItemLoadOpt);
 
         jMenuItemSaveOpt.setMnemonic('S');
@@ -497,13 +480,13 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemSaveOptActionPerformed(evt);
             }
         });
-
         jMenuOptions.add(jMenuItemSaveOpt);
 
         jMenuBarDirSynch.add(jMenuOptions);
 
         jMenuHelp.setMnemonic('h');
         jMenuHelp.setText("Help");
+
         jMenuItemDirSynchHelp.setMnemonic('h');
         jMenuItemDirSynchHelp.setText("DirSynch Help");
         jMenuItemDirSynchHelp.addActionListener(new java.awt.event.ActionListener() {
@@ -511,7 +494,6 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemDirSynchHelpActionPerformed(evt);
             }
         });
-
         jMenuHelp.add(jMenuItemDirSynchHelp);
 
         jMenuItemAbout.setMnemonic('a');
@@ -521,208 +503,218 @@ public class MainJFrame extends javax.swing.JFrame {
                 jMenuItemAboutActionPerformed(evt);
             }
         });
-
         jMenuHelp.add(jMenuItemAbout);
 
         jMenuBarDirSynch.add(jMenuHelp);
 
         setJMenuBar(jMenuBarDirSynch);
 
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 628, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(jLabel2)
-                            .add(jLabel1))
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(layout.createSequentialGroup()
-                                .add(jTxtFldMainDir, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 513, Short.MAX_VALUE)
-                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                .add(jBtnMainDir, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                            .add(layout.createSequentialGroup()
-                                .add(jTxtFldSecDir, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 513, Short.MAX_VALUE)
-                                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                                .add(jBtnSecDir, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))))
-                    .add(statusBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(layout.createSequentialGroup()
-                        .add(jBtnLoad, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 140, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jBtnSynch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 129, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 213, Short.MAX_VALUE)
-                        .add(jChkBoxUseHash)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(jChkBoxHideEquals)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 628, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jTxtFldMainDir, javax.swing.GroupLayout.DEFAULT_SIZE, 513, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jBtnMainDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jTxtFldSecDir, javax.swing.GroupLayout.DEFAULT_SIZE, 513, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jBtnSecDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addComponent(statusBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jBtnLoad, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jBtnSynch, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 213, Short.MAX_VALUE)
+                        .addComponent(jChkBoxUseHash)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jChkBoxHideEquals)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                        .add(jLabel1)
-                        .add(jTxtFldMainDir, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                    .add(jBtnMainDir, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jLabel2)
-                    .add(jTxtFldSecDir, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jBtnSecDir, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                        .add(jBtnLoad)
-                        .add(jBtnSynch))
-                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                        .add(jChkBoxHideEquals)
-                        .add(jChkBoxUseHash)))
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 338, Short.MAX_VALUE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(statusBar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel1)
+                        .addComponent(jTxtFldMainDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jBtnMainDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jTxtFldSecDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jBtnSecDir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jBtnLoad)
+                        .addComponent(jBtnSynch))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jChkBoxHideEquals)
+                        .addComponent(jChkBoxUseHash)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 338, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(statusBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
+
         pack();
-    }//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItemSaveOptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveOptActionPerformed
-        saveOptions();
+	saveOptions();
     }//GEN-LAST:event_jMenuItemSaveOptActionPerformed
 
     private void jMenuItemLoadOptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLoadOptActionPerformed
-        loadOptions();
+	loadOptions();
     }//GEN-LAST:event_jMenuItemLoadOptActionPerformed
-    
+
     private void jMenuItemUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemUnselRegexpActionPerformed
-        selectWithRegexp(false);
+	selectWithRegexp(false);
     }//GEN-LAST:event_jMenuItemUnselRegexpActionPerformed
-    
+
     private void jMenuItemSelRegexpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSelRegexpActionPerformed
-        selectWithRegexp(true);
+	selectWithRegexp(true);
     }//GEN-LAST:event_jMenuItemSelRegexpActionPerformed
-    
+
     private void jChkBxMenuItemIncSubdirsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jChkBxMenuItemIncSubdirsItemStateChanged
-        if (!firstLoad) {
-            load();
-        }
+	if (!firstLoad) {
+	    load();
+	}
     }//GEN-LAST:event_jChkBxMenuItemIncSubdirsItemStateChanged
-    
+
     private void jChkBxMenuItemHideEqualsStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jChkBxMenuItemHideEqualsStateChanged
-        jChkBoxHideEquals.setSelected(jChkBxMenuItemHideEquals.isSelected());
-        jChkBxMenuItemSynchTimesHash.setEnabled(!jChkBoxUseHash.isSelected() || !jChkBoxHideEquals.isSelected());
+	jChkBoxHideEquals.setSelected(jChkBxMenuItemHideEquals.isSelected());
+	jChkBxMenuItemSynchTimesHash.setEnabled(!jChkBoxUseHash.isSelected() || !jChkBoxHideEquals.isSelected());
     }//GEN-LAST:event_jChkBxMenuItemHideEqualsStateChanged
-    
+
     private void jChkBxMenuItemUseHashItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jChkBxMenuItemUseHashItemStateChanged
-        jChkBoxUseHash.setSelected(jChkBxMenuItemUseHash.isSelected());
-        jChkBxMenuItemSynchTimesHash.setEnabled(!jChkBoxUseHash.isSelected() || !jChkBoxHideEquals.isSelected());
+	jChkBoxUseHash.setSelected(jChkBxMenuItemUseHash.isSelected());
+	jChkBxMenuItemSynchTimesHash.setEnabled(!jChkBoxUseHash.isSelected() || !jChkBoxHideEquals.isSelected());
     }//GEN-LAST:event_jChkBxMenuItemUseHashItemStateChanged
-    
+
     private void jMenuItemNewerInSecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemNewerInSecActionPerformed
-        selectFilesByStatus(FilePair.SEC_NEWER);
+	selectFilesByStatus(FilePair.SEC_NEWER);
     }//GEN-LAST:event_jMenuItemNewerInSecActionPerformed
-    
+
     private void jMenuItemNewerInMainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemNewerInMainActionPerformed
-        selectFilesByStatus(FilePair.MAIN_NEWER);
+	selectFilesByStatus(FilePair.MAIN_NEWER);
     }//GEN-LAST:event_jMenuItemNewerInMainActionPerformed
-    
+
     private void jMenuItemOnlyInSecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemOnlyInSecActionPerformed
-        selectFilesByStatus(FilePair.ONLY_SEC);
+	selectFilesByStatus(FilePair.ONLY_SEC);
     }//GEN-LAST:event_jMenuItemOnlyInSecActionPerformed
-    
+
     private void jMenuItemOnlyInMainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemOnlyInMainActionPerformed
-        selectFilesByStatus(FilePair.ONLY_MAIN);
+	selectFilesByStatus(FilePair.ONLY_MAIN);
     }//GEN-LAST:event_jMenuItemOnlyInMainActionPerformed
-    
+
     private void jMenuItemYesNoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemYesNoActionPerformed
-        selectFilesByStatus(new short[] {FilePair.ONLY_MAIN, FilePair.ONLY_SEC});
+	selectFilesByStatus(new short[]{FilePair.ONLY_MAIN, FilePair.ONLY_SEC});
     }//GEN-LAST:event_jMenuItemYesNoActionPerformed
-    
+
     private void jMenuItemNoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemNoneActionPerformed
-        selectAllFiles(false);
+	selectAllFiles(false);
     }//GEN-LAST:event_jMenuItemNoneActionPerformed
-    
+
     private void jMenuItemAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAllActionPerformed
-        selectAllFiles(true);
+	selectAllFiles(true);
     }//GEN-LAST:event_jMenuItemAllActionPerformed
-    
+
     private void jMenuItemDirSynchHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDirSynchHelpActionPerformed
-        String helpText;
-        try {
+	String helpText;
+	try {
 //            helpText = FileUtil.readFile(helpFile);
 //            jEdtPaneHelp.setText(helpText);
-            jEdtPaneHelp.setPage("file:///"+System.getProperty("user.dir")+File.separator+helpFile);
-            jEdtPaneHelp.setCaretPosition(0);
-            jDialogHelp.pack();
-            jDialogHelp.setVisible(true);
-        } catch (IOException ex) {
-            Logger.log(Logger.LEVEL_ERROR, ex);
-        }
+	    jEdtPaneHelp.setPage("file:///" + System.getProperty("user.dir") + File.separator + helpFile);
+	    jEdtPaneHelp.setCaretPosition(0);
+	    jDialogHelp.pack();
+	    jDialogHelp.setVisible(true);
+	} catch (IOException ex) {
+	    Logger.log(Logger.LEVEL_ERROR, ex);
+	}
     }//GEN-LAST:event_jMenuItemDirSynchHelpActionPerformed
-    
+
     private void jMenuItemAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAboutActionPerformed
-        showAbout();
+	showAbout();
     }//GEN-LAST:event_jMenuItemAboutActionPerformed
-    
+
     private void jChkBoxUseHashItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jChkBoxUseHashItemStateChanged
-        jChkBxMenuItemUseHash.setSelected(jChkBoxUseHash.isSelected());
-        jChkBxMenuItemSynchTimesHash.setEnabled(!jChkBoxUseHash.isSelected() || !jChkBoxHideEquals.isSelected());
-        if (!firstLoad) {
-            load();
-        }
+	jChkBxMenuItemUseHash.setSelected(jChkBoxUseHash.isSelected());
+	jChkBxMenuItemSynchTimesHash.setEnabled(!jChkBoxUseHash.isSelected() || !jChkBoxHideEquals.isSelected());
+	if (!firstLoad) {
+	    load();
+	}
     }//GEN-LAST:event_jChkBoxUseHashItemStateChanged
-    
+
     private void jChkBoxHideEqualsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jChkBoxHideEqualsItemStateChanged
-        jChkBxMenuItemHideEquals.setSelected(jChkBoxHideEquals.isSelected());
-        jChkBxMenuItemSynchTimesHash.setEnabled(!jChkBoxUseHash.isSelected() || !jChkBoxHideEquals.isSelected());
-        if (!firstLoad) {
-            load();
-        }
+	jChkBxMenuItemHideEquals.setSelected(jChkBoxHideEquals.isSelected());
+	jChkBxMenuItemSynchTimesHash.setEnabled(!jChkBoxUseHash.isSelected() || !jChkBoxHideEquals.isSelected());
+	if (!firstLoad) {
+	    load();
+	}
     }//GEN-LAST:event_jChkBoxHideEqualsItemStateChanged
-    
+
     private void jTxtFldSecDirKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTxtFldSecDirKeyTyped
-        jBtnSynch.setEnabled(false);
-        firstLoad = true;
+	jBtnSynch.setEnabled(false);
+	firstLoad = true;
     }//GEN-LAST:event_jTxtFldSecDirKeyTyped
-    
+
     private void jTxtFldMainDirKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTxtFldMainDirKeyTyped
-        jBtnSynch.setEnabled(false);
-        firstLoad = true;
+	jBtnSynch.setEnabled(false);
+	firstLoad = true;
     }//GEN-LAST:event_jTxtFldMainDirKeyTyped
-    
+
     private void jBtnSynchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSynchActionPerformed
-        synchronize();
+	synchronize();
     }//GEN-LAST:event_jBtnSynchActionPerformed
-    
+
     private void jBtnSecDirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSecDirActionPerformed
-        selectDir(evt);
+	selectDir(evt);
     }//GEN-LAST:event_jBtnSecDirActionPerformed
-    
+
     private void jBtnMainDirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnMainDirActionPerformed
-        selectDir(evt);
+	selectDir(evt);
     }//GEN-LAST:event_jBtnMainDirActionPerformed
-    
+
     private void statusBarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_statusBarMouseClicked
-        showAbout();
+	showAbout();
     }//GEN-LAST:event_statusBarMouseClicked
-    
+
     private void jBtnLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnLoadActionPerformed
-        load();
+	load();
     }//GEN-LAST:event_jBtnLoadActionPerformed
-    
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+	System.setProperty("sun.awt.exception.handler",
+	    DirSynchExceptionHandler.class.getName());
+	handler = new DirSynchExceptionHandler();
+	Thread.setDefaultUncaughtExceptionHandler(handler);
+	Thread.currentThread().setUncaughtExceptionHandler(handler);
         if (processParams(args)) {
             java.awt.EventQueue.invokeLater(new Runnable() {
                 public void run() {
+		    Thread.currentThread().setUncaughtExceptionHandler(handler);
+		    if (Thread.currentThread().getUncaughtExceptionHandler() != Thread.getDefaultUncaughtExceptionHandler()) {
+			System.err.println("UEH=" + Thread.currentThread().getUncaughtExceptionHandler().getClass().getName()+
+				" DefaultUEH="+Thread.getDefaultUncaughtExceptionHandler().getClass().getName());
+		    }
                     new MainJFrame().setVisible(true);
                 }
             });
@@ -802,6 +794,7 @@ public class MainJFrame extends javax.swing.JFrame {
                     "Directory '" + mainDir + "' does not exist or can't be read.\nCheck the paths!",
                     "Warning!",
                     JOptionPane.WARNING_MESSAGE);
+	    Logger.log(Logger.LEVEL_INFO, "Main dir '" + mainDir + "' does not exist or can't be read.");
             return false;
         } else {
             secDir = new File(getSecDirPath());
@@ -811,6 +804,7 @@ public class MainJFrame extends javax.swing.JFrame {
                         "Directory '" + secDir + "' does not exist or can't be read.\nCheck the paths!",
                         "Warning!",
                         JOptionPane.WARNING_MESSAGE);
+		Logger.log(Logger.LEVEL_INFO, "Second dir '" + secDir + "' does not exist or can't be read.");
                 return false;
             } else {
                 return true;
@@ -818,14 +812,14 @@ public class MainJFrame extends javax.swing.JFrame {
         }
     }
     
-    private String getMainDirPath() {
+    protected String getMainDirPath() {
         return jTxtFldMainDir.getText();
     }
     private void setMainDirPath(String path) {
         jTxtFldMainDir.setText(path);
     }
     
-    private String getSecDirPath() {
+    protected String getSecDirPath() {
         return jTxtFldSecDir.getText();
     }
     private void setSecDirPath(String path) {
@@ -835,235 +829,34 @@ public class MainJFrame extends javax.swing.JFrame {
     private void compareDirs()
     throws IOException, NoSuchAlgorithmException {
         final MainJFrame mainFrame = this;
-        Runnable syncRun = new Runnable() {
-            public void run() {
-                int step = 0;
-                ProgressMonitor progressMonitor = null;
-                try {
-                    Logger.log(Logger.LEVEL_INFO, "Starting load process...");
-                    setButtonsEnabled(false, false);
-                    progressMonitor = new ProgressMonitor(mainFrame,
-                            "Loading . . .",
-                            "", 0, 6);
-                    progressMonitor.setMillisToDecideToPopup(0);
-                    progressMonitor.setMillisToPopup(0);
-                    progressMonitor.setNote("Loading no synch files");
-                    // Step 1 - Loading no synch files
-                    loadNoSynchFiles();
-                    if (progressMonitor.isCanceled()) {
-                        throw new InterruptedException();
-                    }
-                    progressMonitor.setNote("Loading main dir data");
-                    progressMonitor.setProgress(++step);
-                    // Step 2 - Loading main dir data
-                    mainDirMap = new HashMap<String, File>();
-                    // We need to remove the trailing "\" in the case one of the dirs is the root of a drive.
-                    int rootPathSize = (mainDir.getPath().endsWith("\\") ? mainDir.getPath().length()-1 : mainDir.getPath().length());
-                    Logger.log(Logger.LEVEL_DEBUG, "Main dir path: "+mainDir.getPath()+" ("+rootPathSize+")");
-                    buildMap(mainDir, mainDirMap, rootPathSize);
-                    if (progressMonitor.isCanceled()) {
-                        throw new InterruptedException();
-                    }
-                    progressMonitor.setNote("Loading sec dir data");
-                    progressMonitor.setProgress(++step);
-                    // Step 3 - Loading sec dir data
-                    secDirMap = new HashMap<String, File>();
-                    // We need to remove the trailing "\" in the case one of the dirs is the root of a drive.
-                    rootPathSize = (secDir.getPath().endsWith("\\") ? secDir.getPath().length()-1 : secDir.getPath().length());
-                    Logger.log(Logger.LEVEL_DEBUG, "Sec dir path: "+secDir.getPath()+" ("+rootPathSize+")");
-                    buildMap(secDir, secDirMap, rootPathSize);
-                    if (progressMonitor.isCanceled()) {
-                        throw new InterruptedException();
-                    }
-                    progressMonitor.setNote("Comparing data");
-                    progressMonitor.setProgress(++step);
-                    // Step 4 - Comparing data
-                    // Compare maps
-                    Vector<FilePair> files = new Vector<FilePair>(mainDirMap.size());
-                    // Main
-                    Iterator iter = mainDirMap.keySet().iterator();
-                    FilePair file;
-                    while (iter.hasNext()) {
-                        if (progressMonitor.isCanceled()) {
-                            throw new InterruptedException();
-                        }
-                        file = new FilePair((String)iter.next(), mainDir, secDir);
-                        file.setUseHash(jChkBoxUseHash.isSelected());
-                        file.setMainFile((File)mainDirMap.get(file.getPath()));
-                        Logger.log(Logger.LEVEL_DEBUG, "File added main: '"+file.getPath()+"'");
-                        if (secDirMap.containsKey(file.getPath())) {
-                            file.setSecFile((File)secDirMap.get(file.getPath()));
-                        }
-                        files.add(file);
-                    }
-                    // Sec
-                    iter = secDirMap.keySet().iterator();
-                    while (iter.hasNext()) {
-                        if (progressMonitor.isCanceled()) {
-                            throw new InterruptedException();
-                        }
-                        String path = (String)iter.next();
-                        if (!mainDirMap.containsKey(path)) {
-                            file = new FilePair(path, mainDir, secDir);
-                            file.setUseHash(jChkBoxUseHash.isSelected());
-                            file.setSecFile((File)secDirMap.get(file.getPath()));
-                            files.add(file);
-                            Logger.log(Logger.LEVEL_DEBUG, "File added sec: '"+file.getPath()+"'");
-                        }
-                    }
-                    // Show differences
-                    if (progressMonitor.isCanceled()) {
-                        throw new InterruptedException();
-                    }
-                    progressMonitor.setNote("Sorting data");
-                    progressMonitor.setProgress(++step);
-                    // Step 5 - Sorting data
-                    Collections.<FilePair>sort(files);
-                    if (progressMonitor.isCanceled()) {
-                        throw new InterruptedException();
-                    }
-                    progressMonitor.setNote("Preparing to show data");
-                    progressMonitor.setProgress(++step);
-                    // Step 6 - Preparing to show data
-                    ((FileVOTableModel)jTableFiles.getModel()).setFiles(files, getHideEquals());
-                    progressMonitor.setProgress(++step);
-                    progressMonitor.close();
-                    setButtonsEnabled(true, true);
-                    Logger.log(Logger.LEVEL_INFO, "Load process finished successfully.");
-                } catch (InterruptedException ex) {
-                    Logger.log(Logger.LEVEL_INFO, "Load process cancelled by user.");
-                    JOptionPane.showMessageDialog(mainFrame,
-                            "Loading operation CANCELED!", "Cancelled",
-                            JOptionPane.WARNING_MESSAGE);
-                    setButtonsEnabled(true, false);
-                    if (progressMonitor != null) {
-                        progressMonitor.close();
-                    }
-                } catch (IOException ex) {
-                    Logger.log(Logger.LEVEL_ERROR, "Load process failed: "+ex.getMessage());
-                    JOptionPane.showMessageDialog(mainFrame,
-                            ex.getClass().getName() + ": " + ex.getMessage(),
-                            "Error!",
-                            JOptionPane.ERROR_MESSAGE);
-                    Logger.log(Logger.LEVEL_ERROR, ex);
-                    setButtonsEnabled(true, false);
-                } catch (NoSuchAlgorithmException ex) {
-                    Logger.log(Logger.LEVEL_ERROR, "Load process crashed: "+ex.getMessage());
-                    JOptionPane.showMessageDialog(mainFrame,
-                            ex.getClass().getName() + ": " + ex.getMessage(),
-                            "Weird Error!",
-                            JOptionPane.ERROR_MESSAGE);
-                    Logger.log(Logger.LEVEL_ERROR, ex);
-                    setButtonsEnabled(true, false);
-                }
-            }
-        };
-        new Thread(syncRun).start();
+        new DirComparator(mainFrame).execute();
     }
     
     private boolean getHideEquals() {
         return jChkBoxHideEquals.isSelected();
     }
     
-    private void loadNoSynchFiles() {
-        File[] noSynchFiles = {
-            new File(mainDir + File.separator + ".nosynch"),
-            new File(mainDir + File.separator + "_nosynch"),
-            new File(secDir + File.separator + ".nosynch"),
-            new File(secDir + File.separator + "_nosynch"),
-            new File(System.getProperty("user.dir") + File.separator + ".nosynch"),
-            new File(System.getProperty("user.dir") + File.separator + "_nosynch")
-        };
-        noSynchMap = new SynchMapChecker();
-        noSynchMap.init(noSynchFiles);
-    }
-    
-    private void buildMap(File dir, Map<String, File> dirMap, int rootPathSize)
-    throws IOException {
-        Logger.log(Logger.LEVEL_DEBUG, "buildMap: "+dir.getPath()+" - "+rootPathSize);
-        File[] dirFiles = dir.listFiles();
-        Logger.log(Logger.LEVEL_DEBUG, "buildMap: "+dirFiles.length);
-        for (int i = 0; i < dirFiles.length; i++) {
-            File file = dirFiles[i];
-            Logger.log(Logger.LEVEL_DEBUG, "buildMap dirFiles["+i+"]: "+file.getPath());
-            if (!noSynchMap.match(file.getName())) {
-                if (file.isDirectory()) {
-                    if (isIncludeSubdirs()) {
-                        buildMap(file, dirMap, rootPathSize);
-                    }
-                } else {
-                    dirMap.put(file.getPath().substring(rootPathSize), file);
-                }
-            }
-        }
-    }
-    
-    
-    
     private void synchronize() {
         final MainJFrame mainFrame = this;
-        Runnable syncRun = new Runnable() {
-            public void run() {
-                FilePair filePair = null;
-                try {
-                    Logger.log(Logger.LEVEL_INFO, "Starting synchronization process...");
-                    setButtonsEnabled(false, false);
-                    Vector files = ((FileVOTableModel)jTableFiles.getModel()).getFiles();
-                    ProgressMonitor progressMonitor = new ProgressMonitor(mainFrame,
-                            "Synchronizing . . .",
-                            "", 0, files.size());
-                    progressMonitor.setMillisToDecideToPopup(0);
-                    progressMonitor.setMillisToPopup(0);
-                    boolean cancel = false;
-                    for (int i = 0; i < files.size(); i++) {
-                        if (progressMonitor.isCanceled()) {
-                            cancel = true;
-                            break;
-                        }
-                        jTableFiles.setRowSelectionInterval(i, i);
-                        Boolean selected = (Boolean)jTableFiles.getModel().getValueAt(i, 0);
-                        if (selected) {
-                            filePair = (FilePair)files.get(i);
-                            progressMonitor.setNote(filePair.getPath());
-                            filePair.synchronize((jChkBxMenuItemSynchTimesHash.isEnabled()
-                            && jChkBxMenuItemSynchTimesHash.isSelected()),
-                                    jChkBxMenuItemKeepBackup.isSelected());
-                        }
-                        progressMonitor.setProgress(i);
-                    }
-                    progressMonitor.close();
-                    if (cancel) {
-                        Logger.log(Logger.LEVEL_INFO, "Synchronization process cancelled by user.");
-                        JOptionPane.showMessageDialog(mainFrame,
-                                "Synchronization CANCELED!", "Cancelled",
-                                JOptionPane.WARNING_MESSAGE);
-                    } else {
-                        Logger.log(Logger.LEVEL_INFO, "Synchronization process finished successfully.");
-                        JOptionPane.showMessageDialog(mainFrame,
-                                "Synchronization completed!", "Success",
-                                JOptionPane.INFORMATION_MESSAGE);
-                    }
-                    load();
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(mainFrame,
-                            "Failure in synchronization process!",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    Logger.log(Logger.LEVEL_ERROR, "Error processing file: " + filePair);
-                    Logger.log(Logger.LEVEL_ERROR, ex);
-                } catch (NoSuchAlgorithmException ex) {
-                    JOptionPane.showMessageDialog(mainFrame,
-                            "Failure in synchronization process!",
-                            "Weird Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    Logger.log(Logger.LEVEL_ERROR, "Weird Error processing file: " + filePair);
-                    Logger.log(Logger.LEVEL_ERROR, ex);
-                } finally {
-                    setButtonsEnabled(true, true);
-                }
-            }
-        };
-        new Thread(syncRun).start();
+	new Synchronizer(mainFrame).execute();
+    }
+    /**
+     * Get the files selected by the user to synchronize.
+     * @return A Vector of FilePair with the selected files in the table.
+     */
+    protected Vector<FilePair> getSelectedFiles() {
+	Vector<FilePair> selectedFiles = new Vector<FilePair>();
+	Vector<FilePair> files = ((FileVOTableModel) jTableFiles.getModel()).getFiles();
+	jTableFiles.setEnabled(false);
+	for (int i = 0; i < files.size(); i++) {
+	    jTableFiles.setRowSelectionInterval(i, i);
+	    Boolean selected = (Boolean) jTableFiles.getModel().getValueAt(i, 0);
+	    if (selected) {
+		selectedFiles.add(files.get(i));
+	    }
+	}
+	jTableFiles.setEnabled(true);
+	return selectedFiles;
     }
     void setButtonsEnabled(boolean loadStatus, boolean synchStatus) {
         jBtnLoad.setEnabled(loadStatus);
@@ -1077,7 +870,11 @@ public class MainJFrame extends javax.swing.JFrame {
         jBtnSynch.setEnabled(synchStatus);
     }
     
-    private void load() {
+    protected void setFilesInTable(Vector<FilePair> files) {
+	((FileVOTableModel) jTableFiles.getModel()).setFiles(files, getHideEquals());
+    }
+
+    protected void load() {
         if (dirsOk()) {
             try {
                 compareDirs();
@@ -1114,7 +911,7 @@ public class MainJFrame extends javax.swing.JFrame {
     
     private void showAbout() {
         JOptionPane.showMessageDialog(this,
-                "DirSynch "+version+"\n© 2007 Itamar Carvalho <itamarc AT gmail\u00B7com>",
+                "DirSynch "+version+"\nhttps://dirsynch.dev.java.net\n© 2007 Itamar Carvalho <itamarc+dirsynch AT gmail\u00B7com>",
                 "About DirSynch",
                 JOptionPane.INFORMATION_MESSAGE);
     }
@@ -1162,22 +959,27 @@ public class MainJFrame extends javax.swing.JFrame {
         return found;
     }
     
-    private boolean isIncludeSubdirs() {
+    protected boolean isIncludeSubdirs() {
         return jChkBxMenuItemIncSubdirs.isSelected();
     }
     
-    private boolean isHashEnabled() {
+    protected boolean isHashEnabled() {
         return jChkBxMenuItemUseHash.isSelected();
     }
     
-    private boolean isHideEquals() {
+    protected boolean isHideEquals() {
         return jChkBxMenuItemHideEquals.isSelected();
     }
     
-    private boolean isSynchTimesSameHash() {
-        return jChkBxMenuItemSynchTimesHash.isSelected();
+    protected boolean isSynchTimesSameHash() {
+        return jChkBxMenuItemSynchTimesHash.isEnabled() &&
+		jChkBxMenuItemSynchTimesHash.isSelected();
     }
     
+    protected boolean isKeepBackup() {
+	return jChkBxMenuItemKeepBackup.isSelected();
+    }
+
     private void selectWithRegexp(boolean select) {
         String regexp = JOptionPane.showInputDialog(this, "Regular expression:", "Regexp", JOptionPane.QUESTION_MESSAGE);
         Pattern regPat = null;
@@ -1270,7 +1072,7 @@ public class MainJFrame extends javax.swing.JFrame {
         }
     }
     
-    // Declaração de variáveis - não modifique//GEN-BEGIN:variables
+    // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jBtnLoad;
     private javax.swing.JButton jBtnMainDir;
     private javax.swing.JButton jBtnSecDir;
@@ -1315,6 +1117,127 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JTextField jTxtFldMainDir;
     private javax.swing.JTextField jTxtFldSecDir;
     private javax.swing.JPanel statusBar;
-    // Fim da declaração de variáveis//GEN-END:variables
+    // End of variables declaration//GEN-END:variables
+
+//    private class DirComparator implements Runnable {
+//
+//	private final MainJFrame mainFrame;
+//
+//	public DirComparator(MainJFrame mainFrame) {
+//	    this.mainFrame = mainFrame;
+//	}
+//
+//	public void run() {
+//	    int step = 0;
+//	    ProgressMonitor progressMonitor = null;
+//	    try {
+//		Logger.log(Logger.LEVEL_INFO, "Starting load process...");
+//		setButtonsEnabled(false, false);
+//		progressMonitor = new ProgressMonitor(mainFrame, "Loading . . .", "", 0, 6);
+//		progressMonitor.setMillisToDecideToPopup(0);
+//		progressMonitor.setMillisToPopup(0);
+//		progressMonitor.setNote("Loading no synch files");
+//		// Step 1 - Loading no synch files
+//		loadNoSynchFiles();
+//		if (progressMonitor.isCanceled()) {
+//		    throw new InterruptedException();
+//		}
+//		progressMonitor.setNote("Loading main dir data");
+//		progressMonitor.setProgress(++step);
+//		// Step 2 - Loading main dir data
+//		mainDirMap = new HashMap<String, File>();
+//		// We need to remove the trailing "\" in the case one of the dirs is the root of a drive.
+//		int rootPathSize = mainDir.getPath().endsWith("\\") ? mainDir.getPath().length() - 1 : mainDir.getPath().length();
+//		Logger.log(Logger.LEVEL_DEBUG, "Main dir path: " + mainDir.getPath() + " (" + rootPathSize + ")");
+//		buildMap(mainDir, mainDirMap, rootPathSize);
+//		if (progressMonitor.isCanceled()) {
+//		    throw new InterruptedException();
+//		}
+//		progressMonitor.setNote("Loading sec dir data");
+//		progressMonitor.setProgress(++step);
+//		// Step 3 - Loading sec dir data
+//		secDirMap = new HashMap<String, File>();
+//		// We need to remove the trailing "\" in the case one of the dirs is the root of a drive.
+//		rootPathSize = (secDir.getPath().endsWith("\\") ? secDir.getPath().length() - 1 : secDir.getPath().length());
+//		Logger.log(Logger.LEVEL_DEBUG, "Sec dir path: " + secDir.getPath() + " (" + rootPathSize + ")");
+//		buildMap(secDir, secDirMap, rootPathSize);
+//		if (progressMonitor.isCanceled()) {
+//		    throw new InterruptedException();
+//		}
+//		progressMonitor.setNote("Comparing data");
+//		progressMonitor.setProgress(++step);
+//		// Step 4 - Comparing data
+//		// Compare maps
+//		Vector<FilePair> files = new Vector<FilePair>(mainDirMap.size());
+//		// Main
+//		Iterator iter = mainDirMap.keySet().iterator();
+//		FilePair file;
+//		while (iter.hasNext()) {
+//		    if (progressMonitor.isCanceled()) {
+//			throw new InterruptedException();
+//		    }
+//		    file = new FilePair((String) iter.next(), mainDir, secDir);
+//		    file.setUseHash(jChkBoxUseHash.isSelected());
+//		    file.setMainFile((File) mainDirMap.get(file.getPath()));
+//		    Logger.log(Logger.LEVEL_DEBUG, "File added main: '" + file.getPath() + "'");
+//		    if (secDirMap.containsKey(file.getPath())) {
+//			file.setSecFile((File) secDirMap.get(file.getPath()));
+//		    }
+//		    files.add(file);
+//		}
+//		// Sec
+//		iter = secDirMap.keySet().iterator();
+//		while (iter.hasNext()) {
+//		    if (progressMonitor.isCanceled()) {
+//			throw new InterruptedException();
+//		    }
+//		    String path = (String) iter.next();
+//		    if (!mainDirMap.containsKey(path)) {
+//			file = new FilePair(path, mainDir, secDir);
+//			file.setUseHash(jChkBoxUseHash.isSelected());
+//			file.setSecFile((File) secDirMap.get(file.getPath()));
+//			files.add(file);
+//			Logger.log(Logger.LEVEL_DEBUG, "File added sec: '" + file.getPath() + "'");
+//		    }
+//		}
+//		// Show differences
+//		if (progressMonitor.isCanceled()) {
+//		    throw new InterruptedException();
+//		}
+//		progressMonitor.setNote("Sorting data");
+//		progressMonitor.setProgress(++step);
+//		// Step 5 - Sorting data
+//		Collections.<FilePair>sort(files);
+//		if (progressMonitor.isCanceled()) {
+//		    throw new InterruptedException();
+//		}
+//		progressMonitor.setNote("Preparing to show data");
+//		progressMonitor.setProgress(++step);
+//		// Step 6 - Preparing to show data
+//		((FileVOTableModel) jTableFiles.getModel()).setFiles(files, getHideEquals());
+//		progressMonitor.setProgress(++step);
+//		progressMonitor.close();
+//		setButtonsEnabled(true, true);
+//		Logger.log(Logger.LEVEL_INFO, "Load process finished successfully.");
+//	    } catch (InterruptedException ex) {
+//		Logger.log(Logger.LEVEL_INFO, "Load process cancelled by user.");
+//		JOptionPane.showMessageDialog(mainFrame, "Loading operation CANCELED!", "Cancelled", JOptionPane.WARNING_MESSAGE);
+//		setButtonsEnabled(true, false);
+//		if (progressMonitor != null) {
+//		    progressMonitor.close();
+//		}
+//	    } catch (IOException ex) {
+//		Logger.log(Logger.LEVEL_ERROR, "Load process failed: " + ex.getMessage());
+//		JOptionPane.showMessageDialog(mainFrame, ex.getClass().getName() + ": " + ex.getMessage(), "Error!", JOptionPane.ERROR_MESSAGE);
+//		Logger.log(Logger.LEVEL_ERROR, ex);
+//		setButtonsEnabled(true, false);
+//	    } catch (NoSuchAlgorithmException ex) {
+//		Logger.log(Logger.LEVEL_ERROR, "Load process crashed: " + ex.getMessage());
+//		JOptionPane.showMessageDialog(mainFrame, ex.getClass().getName() + ": " + ex.getMessage(), "Weird Error!", JOptionPane.ERROR_MESSAGE);
+//		Logger.log(Logger.LEVEL_ERROR, ex);
+//		setButtonsEnabled(true, false);
+//	    }
+//	}
+//    }
     
 }

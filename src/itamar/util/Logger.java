@@ -16,8 +16,9 @@ import java.util.Date;
  * Log levels: NONE, ERROR, WARNING, INFO and DEBUG.<p>
  * Example:
  * <code><pre>
- * Logger.init(Logger.LEVEL_INFO, "c:\temp\MyLogFile.txt");
+ * Logger.init(Logger.LEVEL_INFO, "c:\temp\MyLogFile.txt", true);
  * Logger.log(Logger.LEVEL_WARNING, exception);
+ * Logger.log(Logger.LEVEL_INFO, "Something has happened.");
  * </pre></code>
  * @author Itamar Carvalho
  */
@@ -29,10 +30,16 @@ public class Logger {
     public static final short LEVEL_DEBUG = 4;
     private static short level = -1;
     private static String logFile = null;
-    
+
     /** Logger isn't supposed to instantiate. */
     private Logger() {}
     
+    /**
+     * Initiates the Logger, pointing the <tt>System.err</tt> to the log file.
+     * @param level Level to operate. Only messages with level smaller or equals to this will be printed.
+     * @param logFile The log file to be used.
+     * @param append If true, the log file will be appended, if false, overwrited.
+     */
     public static void init(short level, String logFile, boolean append) {
         Logger.level = level;
         Logger.logFile = logFile;
@@ -60,7 +67,7 @@ public class Logger {
         }
     }
     
-    public static void log(short msgLevel, Exception ex) {
+    public static void log(short msgLevel, Throwable ex) {
         if (msgLevel <= Logger.level) {
             System.err.println(new Date().toString() + " [" + getLevelName(msgLevel) + "] ");
             ex.printStackTrace(System.err);
@@ -87,5 +94,9 @@ public class Logger {
             default:
                 return "Unknown";
         }
+    }
+
+    public static String getLogFile() {
+	return logFile;
     }
 }

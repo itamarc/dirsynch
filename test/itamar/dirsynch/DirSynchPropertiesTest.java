@@ -1,16 +1,7 @@
 package itamar.dirsynch;
 import junit.framework.*;
 import itamar.util.Logger;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Properties;
-/*
- * DirSynchPropertiesTest.java
- * JUnit based test
- *
- * Created on 26 de Janeiro de 2008, 13:39
- */
 
 /**
  *
@@ -59,13 +50,13 @@ public class DirSynchPropertiesTest extends TestCase {
     /**
      * Teste do método isHashOnlySmall, da classe itamar.dirsynch.DirSynchProperties.
      */
-    public void testIsHashOnlySmall() {
+    /*public void testIsHashOnlySmall() {
         System.out.println("isHashOnlySmall");
         
         boolean expResult = true;
         boolean result = itamar.dirsynch.DirSynchProperties.isHashOnlySmall();
         assertEquals(expResult, result);
-    }
+    }*/
 
 //    /**
 //     * Teste do método getHashMaxSize, da classe itamar.dirsynch.DirSynchProperties.

@@ -51,7 +51,7 @@ public class FileVOTableModel extends DefaultTableModel {
      * Returns the FilePair's Vector with all files or only the different ones depending on the hideEquals attribute.
      * @return Vector with FilePair's.
      */
-    public Vector getFiles() {
+    public Vector<FilePair> getFiles() {
 	if (hideEquals) {
 	    Vector<FilePair> clean = new Vector<FilePair>();
             for (FilePair filePair: files) {
@@ -98,6 +98,7 @@ public class FileVOTableModel extends DefaultTableModel {
      * @param columnIndex The index of the column to return.
      * @return The column type (Class).
      */
+    @Override
     public Class getColumnClass(int columnIndex) {
 	return types [columnIndex];
     }
@@ -108,6 +109,7 @@ public class FileVOTableModel extends DefaultTableModel {
      * @param columnIndex The value based on which the editable value is defined.
      * @return Boolean meaning if the cell is editable.
      */
+    @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
 	return canEdit [columnIndex];
     }

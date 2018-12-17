@@ -69,4 +69,13 @@
     <target name="-pre-jar">
         <copy todir="${build.dir}"><fileset dir="${src.dir}" includes="**/*.png"/></copy>
     </target>
+    <target name="-post-jar">
+        <zip destfile="${dist.dir}/DirSynch.zip">
+            <zipfileset dir="${dist.dir}" includes="DirSynch.jar"/>
+            <zipfileset dir="www" includes="DirSynch-help.html"/>
+            <zipfileset dir="." includes="DirSynch.properties"/>
+            <zipfileset dir="www" includes="x.gif, v.gif, main-screen-small-1.5.png"/>
+            <zipfileset dir="${dist.dir}/lib" prefix="lib"/>
+        </zip>
+    </target>
 </project>
