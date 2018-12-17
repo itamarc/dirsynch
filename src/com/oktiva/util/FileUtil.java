@@ -55,7 +55,7 @@ public final class FileUtil {
 			if (!dest.exists()) {
 				File parentdir = parent(dest);
 				if (!parentdir.exists()) {
-					parentdir.mkdir();
+					parentdir.mkdirs();
 				}
 			} else if (dest.isDirectory()) {
 				dest = new File(dest + File.separator + src);
@@ -65,7 +65,7 @@ public final class FileUtil {
 				throw new IOException("Cannot copy directory "+src+" to file "+dest);
 			}
 			if (!dest.exists()) {
-				dest.mkdir();
+				dest.mkdirs();
 			}
 		}
 		if (src.isFile()) {

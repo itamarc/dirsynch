@@ -7,8 +7,10 @@
 package itamar.dirsynch;
 
 import itamar.util.Logger;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -24,6 +26,10 @@ import java.util.Properties;
  * # Value: [true, false] (default: false)
  * hash.enabled=false
  *
+ * # Only synchronize times if files have the same hash.
+ * # Value: [true, false] (default: true)
+ * synch.times.same.hash=true
+ *
  * # Hash only small files?
  * # Value: [true, false] (default: true)
  * hash.onlysmall=true
@@ -38,6 +44,10 @@ import java.util.Properties;
  * # The file to receive log messages.
  * # Value: string, path to file (default: ".\DirSynch.log")
  * log.file=DirSynch.log
+ *
+ * # Append to the log file or nor (overwrite the old log)
+ * # Value: [true, false] (default: true)
+ * log.file.append=true
  *
  * # Initial main dir
  * # Value: string, path to main dir
@@ -66,16 +76,21 @@ public class DirSynchProperties {
     // Value: [true, false] (default: false)
     // hash.enabled=false
     private static boolean hashEnabled = false;
-    
+
+    // Only synchronize times if files have the same hash.
+    // Value: [true, false] (default: true)
+    //synch.times.same.hash=true 
+    private static boolean synchTimesSameHash = true;
+        
     // Hash only small files?
     // Value: [true, false] (default: true)
     //hash.onlysmall=true
-    private static boolean hashOnlySmall = true;
+    //private static boolean hashOnlySmall = true;
     
     // If hashing only small files, what's the max size?
     // Value: integer, size in Kb (default: 256)
     //hash.onlysmall.maxsize=256
-    private static int hashMaxSize = 256;
+    //private static int hashMaxSize = 256;
     
     // Level of the log: [NONE, ERROR, WARNING, INFO, DEBUG] (default: WARNING)
     //log.level=WARNING
@@ -85,6 +100,11 @@ public class DirSynchProperties {
     // Value: string, path to file (default: ".\DirSynch.log")
     //log.file=DirSynch.log
     private static String logFile = "DirSynch.log";
+    
+    // Append to the log file or nor (overwrite the old log)
+    // Value: [true, false] (default: true)
+    //log.file.append=true
+    private static boolean logFileAppend = true;
     
     // Initial main dir
     // Value: string, path to main dir
@@ -114,7 +134,27 @@ public class DirSynchProperties {
     // Use the files hash to verify the copy?
     // Value: [true, false] (default: false)
     //verify.usehash=false
+
+    // The properties object that will hold the loaded values
     private static Properties properties;
+
+    private static String KEY_HASH_ENABLED = "hash.enabled";
+
+    private static String KEY_SYNCH_TIMES_SAME_HASH = "synch.times.same.hash";
+
+    private static String KEY_LOG_LEVEL = "log.level";
+
+    private static String KEY_LOG_FILE = "log.file";
+
+    private static String KEY_LOG_FILE_APPEND = "log.file.append";
+
+    private static String KEY_MAINDIR = "maindir";
+
+    private static String KEY_SECDIR = "secdir";
+
+    private static String KEY_SUBDIRS_INCLUDE = "subdirs.include";
+
+    private static String KEY_HIDE_EQUALS = "hide.equals";
     
     /* Static class. */
     private DirSynchProperties() {}
@@ -126,31 +166,37 @@ public class DirSynchProperties {
         properties.load(new FileInputStream(propertiesFile));
         
         //hash.enabled=false
-        hashEnabled = getBoolean(properties, "hash.enabled", false);
+        setHashEnabled(getBoolean(properties, KEY_HASH_ENABLED, false));
+        
+        //synch.times.same.hash=true
+        setSynchTimesSameHash(getBoolean(properties, KEY_SYNCH_TIMES_SAME_HASH, true));
         
         //hash.onlysmall=true
-        hashOnlySmall = getBoolean(properties, "hash.onlysmall", true);
+//        hashOnlySmall = getBoolean(properties, "hash.onlysmall", true);
         
         //hash.onlysmall.maxsize=256
-        hashMaxSize = getInteger(properties, "hash.onlysmall.maxsize", 256);
+//        hashMaxSize = getInteger(properties, "hash.onlysmall.maxsize", 256);
         
         //log.level=WARNING
-        logLevel = getLogLevel(properties, "log.level", "WARNING");
+        setLogLevel(getLogLevel(properties, KEY_LOG_LEVEL, "WARNING"));
         
         //log.file=DirSynch.log
-        logFile = getString(properties, "log.file", "DirSynch.log");
+        setLogFile(getString(properties, KEY_LOG_FILE, "DirSynch.log"));
+        
+        //log.file.append=true
+        setLogFileAppend(getBoolean(properties, KEY_LOG_FILE_APPEND, true));
         
         //maindir=[path to main dir]
-        mainDir = getString(properties, "maindir", "");
+        setMainDir(getString(properties, KEY_MAINDIR, ""));
         
         //secdir=[path to sec dir]
-        secDir = getString(properties, "secdir", "");
+        setSecDir(getString(properties, KEY_SECDIR, ""));
         
         //subdirs.include=true
-        subDirsInclude = getBoolean(properties, "subdirs.include", true);
+        setSubDirsInclude(getBoolean(properties, KEY_SUBDIRS_INCLUDE, true));
         
         //hide.equals=true
-        hideEquals = getBoolean(properties, "hide.equals", true);
+        setHideEquals(getBoolean(properties, KEY_HIDE_EQUALS, true));
     }
     
     private static boolean getBoolean(Properties properties, String key, boolean defaultValue) {
@@ -222,19 +268,19 @@ public class DirSynchProperties {
         return hashEnabled;
     }
 
-    public static boolean isHashOnlySmall() {
+/*    public static boolean isHashOnlySmall() {
         if (!initied) {
             Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return hashOnlySmall;
-    }
+    }*/
 
-    public static int getHashMaxSize() {
+    /*public static int getHashMaxSize() {
         if (!initied) {
             Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return hashMaxSize;
-    }
+    }*/
 
     public static short getLogLevel() {
         if (!initied) {
@@ -279,6 +325,78 @@ public class DirSynchProperties {
     }
 
     public static String getPropertiesAsString() {
+        if (!initied) {
+            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+        }
         return properties.toString();
+    }
+
+    public static boolean isSynchTimesSameHash() {
+        if (!initied) {
+            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+        }
+        return synchTimesSameHash;
+    }
+
+    public static boolean isLogFileAppend() {
+        if (!initied) {
+            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+        }
+        return logFileAppend;
+    }
+    
+    public static void save(String propertiesFile)
+    throws FileNotFoundException, IOException {
+        properties.store(new FileOutputStream(propertiesFile), "AUTOMATICALLY GENERATED BY DirSynch");
+    }
+    
+    public static void save(File propertiesFile)
+    throws FileNotFoundException, IOException {
+        properties.store(new FileOutputStream(propertiesFile, false), "AUTOMATICALLY GENERATED BY DirSynch");
+    }
+
+    public static void setHashEnabled(boolean aHashEnabled) {
+        hashEnabled = aHashEnabled;
+        properties.setProperty(KEY_HASH_ENABLED, Boolean.toString(aHashEnabled));
+    }
+
+    public static void setSynchTimesSameHash(boolean aSynchTimesSameHash) {
+        synchTimesSameHash = aSynchTimesSameHash;
+        properties.setProperty(KEY_SYNCH_TIMES_SAME_HASH, Boolean.toString(aSynchTimesSameHash));
+    }
+
+    public static void setLogLevel(short aLogLevel) {
+        logLevel = aLogLevel;
+        properties.setProperty(KEY_LOG_LEVEL, Logger.getLevelName(aLogLevel));
+    }
+
+    public static void setLogFile(String aLogFile) {
+        logFile = aLogFile;
+        properties.setProperty(KEY_LOG_FILE, aLogFile);
+    }
+
+    public static void setLogFileAppend(boolean aLogFileAppend) {
+        logFileAppend = aLogFileAppend;
+        properties.setProperty(KEY_LOG_FILE_APPEND, Boolean.toString(aLogFileAppend));
+    }
+
+    public static void setMainDir(String aMainDir) {
+        mainDir = aMainDir;
+        properties.setProperty(KEY_MAINDIR, aMainDir);
+    }
+
+    public static void setSecDir(String aSecDir) {
+        secDir = aSecDir;
+        properties.setProperty(KEY_SECDIR, aSecDir);
+    }
+
+    public static void setSubDirsInclude(boolean aSubDirsInclude) {
+        subDirsInclude = aSubDirsInclude;
+        properties.setProperty(KEY_SUBDIRS_INCLUDE, Boolean.toString(aSubDirsInclude));
+    }
+
+    public static void setHideEquals(boolean aHideEquals) {
+        hideEquals = aHideEquals;
+        properties.setProperty(KEY_HIDE_EQUALS, Boolean.toString(aHideEquals));
     }
 }

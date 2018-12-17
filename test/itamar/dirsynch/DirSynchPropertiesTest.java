@@ -76,9 +76,6 @@ public class DirSynchPropertiesTest extends TestCase {
 //        int expResult = 0;
 //        int result = itamar.dirsynch.DirSynchProperties.getHashMaxSize();
 //        assertEquals(expResult, result);
-//        
-//        // TODO rever o código de teste gerado e remover a chamada de falha padrão.
-//        fail("O caso de teste é um protótipo.");
 //    }
 
     /**
@@ -156,9 +153,6 @@ public class DirSynchPropertiesTest extends TestCase {
 //        String expResult = "";
 //        String result = itamar.dirsynch.DirSynchProperties.getPropertiesAsString();
 //        assertEquals(expResult, result);
-//        
-//        // TODO rever o código de teste gerado e remover a chamada de falha padrão.
-//        fail("O caso de teste é um protótipo.");
 //    }
     
 }

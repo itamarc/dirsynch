@@ -7,6 +7,7 @@ package itamar.dirsynch;
 
 import com.oktiva.util.FileUtil;
 import itamar.util.CryptoUtil;
+import itamar.util.Logger;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -18,7 +19,7 @@ import java.text.DecimalFormat;
  * This file represents a pair of files that are supposed to be compared.
  * @author Itamar
  */
-public class FilePair implements Comparable {
+public class FilePair implements Comparable<FilePair> {
     private String path;
     private boolean inMainDir = false;
     private boolean inSecDir = false;
@@ -231,11 +232,10 @@ public class FilePair implements Comparable {
     
     /**
      *
-     * @param o
+     * @param other
      * @return
      */
-    public int compareTo(Object o) {
-        FilePair other = (FilePair)o;
+    public int compareTo(FilePair other) {
         return this.getPath().compareTo(other.getPath());
     }
     
@@ -302,14 +302,19 @@ public class FilePair implements Comparable {
     }
     
     /**
-     *
-     * @param keepBackup
+     * Synchronize the files, based on their status and some options.
+     * @param synchTimeHash Only synchronize the times if files are equals (have same hash).
+     * @param keepBackup Keep a backup of the files to be overwritten.
      * @throws java.io.IOException
+     * @throws java.security.NoSuchAlgorithmException
      */
     public void synchronize(boolean synchTimeHash, boolean keepBackup)
     throws IOException, NoSuchAlgorithmException {
         if (newer == FilePair.EQUALS) {
+            // This will happen only if useHash is on: the files are equals
+            // (same hash), but have different timestamps
             if (synchTimeHash && mainFile.lastModified() != secFile.lastModified()) {
+                Logger.log(Logger.LEVEL_INFO, "Synching times [HashOn]: "+getPath());
                 if (mainFile.lastModified() > secFile.lastModified()) {
                     secFile.setLastModified(mainFile.lastModified());
                 } else { // if (mainFile.lastModified() < secFile.lastModified()) {
@@ -324,13 +329,16 @@ public class FilePair implements Comparable {
             if (synchTimeHash
                     && (mainFile.length() == secFile.length())
                     && (getMainFileHash().equals(getSecFileHash()))) {
+                Logger.log(Logger.LEVEL_INFO, "Synching times [MN]: "+getPath());
                 secFile.setLastModified(mainFile.lastModified());
             } else {
                 // Copy main to sec
+                Logger.log(Logger.LEVEL_INFO, "Copying file [MN]: "+getPath());
                 copy(mainFile, secFile, keepBackup);
             }
         } else if (newer == FilePair.ONLY_MAIN) {
             // Copy main to sec dir
+            Logger.log(Logger.LEVEL_INFO, "Copying file [OM]: "+getPath());
             copy(mainFile, new File(secDir + File.separator + path), keepBackup);
         } else if (newer == FilePair.SEC_NEWER) {
             // If the option "synch times if same hashes" is on
@@ -338,13 +346,16 @@ public class FilePair implements Comparable {
             if (synchTimeHash
                     && (mainFile.length() == secFile.length())
                     && (getMainFileHash().equals(getSecFileHash()))) {
+                Logger.log(Logger.LEVEL_INFO, "Synching times [SN]: "+getPath());
                 mainFile.setLastModified(secFile.lastModified());
             } else {
                 // Copy sec to main
+                Logger.log(Logger.LEVEL_INFO, "Copying file [SN]: "+getPath());
                 copy(secFile, mainFile, keepBackup);
             }
         } else if (newer == FilePair.ONLY_SEC) {
             // Copy sec to main dir
+            Logger.log(Logger.LEVEL_INFO, "Copying file [OS]: "+getPath());
             copy(secFile, new File(mainDir + File.separator + path), keepBackup);
         }
         // TODO Let the user define action if newer == MAIN_BIGGER or SEC_BIGGER

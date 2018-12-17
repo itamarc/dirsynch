@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -33,6 +35,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.ProgressMonitor;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableCellRenderer;
 
 /**
@@ -42,36 +45,22 @@ import javax.swing.table.TableCellRenderer;
 public class MainJFrame extends javax.swing.JFrame {
     private File mainDir;
     private File secDir;
-    private Map mainDirMap;
-    private Map secDirMap;
+    private Map<String, File> mainDirMap;
+    private Map<String, File> secDirMap;
     private static String defaultMainDirPath = null;
     private static String defaultSecDirPath = null;
     
-    private static String version = "1.4";
+    private static String version = "1.5";
     private static boolean defaultKeep = false;
-    private Map noSynchMap = null;
+    private SynchMapChecker noSynchMap = null;
     private boolean firstLoad = true;
     private final String helpFile = "DirSynch-help.html";
     private static String propertiesFilePath = "DirSynch.properties";
     
     /** Creates new form MainJFrame */
     public MainJFrame() {
-        try {
-            DirSynchProperties.init(propertiesFilePath);
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this,
-                    "File '"+propertiesFilePath+"' not found!",
-                    "Warning!",
-                    JOptionPane.WARNING_MESSAGE);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this,
-                    "Error reading file '"+propertiesFilePath+"':\n"+ex.getMessage(),
-                    "Warning!",
-                    JOptionPane.WARNING_MESSAGE);
-        }
-        Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile());
+        initDirSynchProperties();
+        Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile(), DirSynchProperties.isLogFileAppend());
         Logger.log(Logger.LEVEL_INFO, "Properties initialized with file '"+propertiesFilePath+"'");
         Logger.log(Logger.LEVEL_DEBUG, "Properties read: "+DirSynchProperties.getPropertiesAsString());
         initComponents();
@@ -100,16 +89,50 @@ public class MainJFrame extends javax.swing.JFrame {
             }
         });
 
+        initOptions();
+    }
+
+    private void initDirSynchProperties() {
+        try {
+            DirSynchProperties.init(propertiesFilePath);
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "File '"+propertiesFilePath+"' not found!",
+                    "Warning!",
+                    JOptionPane.WARNING_MESSAGE);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Error reading file '"+propertiesFilePath+"':\n"+ex.getMessage(),
+                    "Warning!",
+                    JOptionPane.WARNING_MESSAGE);
+        }
+    }
+    
+    private void initOptions() {
         // defaultXXXDirPath comes from command-line parameters and has priority over .properties file
         setMainDirPath((defaultMainDirPath == null ? DirSynchProperties.getMainDir() : defaultMainDirPath));
         setSecDirPath((defaultSecDirPath == null ? DirSynchProperties.getSecDir() : defaultSecDirPath));
-
+        
         Logger.log(Logger.LEVEL_DEBUG, "SubDirsInclude="+DirSynchProperties.isSubDirsInclude());
         jChkBxMenuItemUseHash.setSelected(DirSynchProperties.isHashEnabled());
         jChkBxMenuItemIncSubdirs.setSelected(DirSynchProperties.isSubDirsInclude());
         jChkBxMenuItemHideEquals.setSelected(DirSynchProperties.isHideEquals());
+        jChkBxMenuItemSynchTimesHash.setSelected(DirSynchProperties.isSynchTimesSameHash());
         
         jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
+    }
+
+    private void setOptionsInProps() {
+        DirSynchProperties.setMainDir(getMainDirPath());
+        DirSynchProperties.setSecDir(getSecDirPath());
+
+        DirSynchProperties.setHashEnabled(isHashEnabled());
+        DirSynchProperties.setSubDirsInclude(isIncludeSubdirs());
+        DirSynchProperties.setHideEquals(isHideEquals());
+        DirSynchProperties.setSynchTimesSameHash(isSynchTimesSameHash());
+//        jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
     }
     
     /** This method is called from within the constructor to
@@ -147,12 +170,18 @@ public class MainJFrame extends javax.swing.JFrame {
         jSeparator2 = new javax.swing.JSeparator();
         jMenuItemNewerInMain = new javax.swing.JMenuItem();
         jMenuItemNewerInSec = new javax.swing.JMenuItem();
+        jSeparator3 = new javax.swing.JSeparator();
+        jMenuItemSelRegexp = new javax.swing.JMenuItem();
+        jMenuItemUnselRegexp = new javax.swing.JMenuItem();
         jMenuOptions = new javax.swing.JMenu();
         jChkBxMenuItemIncSubdirs = new javax.swing.JCheckBoxMenuItem();
         jChkBxMenuItemUseHash = new javax.swing.JCheckBoxMenuItem();
         jChkBxMenuItemHideEquals = new javax.swing.JCheckBoxMenuItem();
         jChkBxMenuItemKeepBackup = new javax.swing.JCheckBoxMenuItem();
         jChkBxMenuItemSynchTimesHash = new javax.swing.JCheckBoxMenuItem();
+        jSeparator4 = new javax.swing.JSeparator();
+        jMenuItemLoadOpt = new javax.swing.JMenuItem();
+        jMenuItemSaveOpt = new javax.swing.JMenuItem();
         jMenuHelp = new javax.swing.JMenu();
         jMenuItemDirSynchHelp = new javax.swing.JMenuItem();
         jMenuItemAbout = new javax.swing.JMenuItem();
@@ -218,7 +247,7 @@ public class MainJFrame extends javax.swing.JFrame {
             statusBarLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(statusBarLayout.createSequentialGroup()
                 .addContainerGap()
-                .add(jLblStatusBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 511, Short.MAX_VALUE)
+                .add(jLblStatusBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 604, Short.MAX_VALUE)
                 .addContainerGap())
         );
         statusBarLayout.setVerticalGroup(
@@ -382,13 +411,33 @@ public class MainJFrame extends javax.swing.JFrame {
 
         jMenuSelect.add(jMenuItemNewerInSec);
 
+        jMenuSelect.add(jSeparator3);
+
+        jMenuItemSelRegexp.setText("Sel with regexp...");
+        jMenuItemSelRegexp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSelRegexpActionPerformed(evt);
+            }
+        });
+
+        jMenuSelect.add(jMenuItemSelRegexp);
+
+        jMenuItemUnselRegexp.setText("Unsel with regexp...");
+        jMenuItemUnselRegexp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemUnselRegexpActionPerformed(evt);
+            }
+        });
+
+        jMenuSelect.add(jMenuItemUnselRegexp);
+
         jMenuTools.add(jMenuSelect);
 
         jMenuBarDirSynch.add(jMenuTools);
 
         jMenuOptions.setMnemonic('o');
         jMenuOptions.setText("Options");
-        jChkBxMenuItemIncSubdirs.setMnemonic('s');
+        jChkBxMenuItemIncSubdirs.setMnemonic('I');
         jChkBxMenuItemIncSubdirs.setSelected(true);
         jChkBxMenuItemIncSubdirs.setText("Include subdirs");
         jChkBxMenuItemIncSubdirs.addItemListener(new java.awt.event.ItemListener() {
@@ -429,6 +478,28 @@ public class MainJFrame extends javax.swing.JFrame {
         jChkBxMenuItemSynchTimesHash.setText("Synch times for same hashes");
         jMenuOptions.add(jChkBxMenuItemSynchTimesHash);
 
+        jMenuOptions.add(jSeparator4);
+
+        jMenuItemLoadOpt.setMnemonic('L');
+        jMenuItemLoadOpt.setText("Load options...");
+        jMenuItemLoadOpt.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemLoadOptActionPerformed(evt);
+            }
+        });
+
+        jMenuOptions.add(jMenuItemLoadOpt);
+
+        jMenuItemSaveOpt.setMnemonic('S');
+        jMenuItemSaveOpt.setText("Save options...");
+        jMenuItemSaveOpt.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSaveOptActionPerformed(evt);
+            }
+        });
+
+        jMenuOptions.add(jMenuItemSaveOpt);
+
         jMenuBarDirSynch.add(jMenuOptions);
 
         jMenuHelp.setMnemonic('h');
@@ -464,7 +535,7 @@ public class MainJFrame extends javax.swing.JFrame {
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 535, Short.MAX_VALUE)
+                    .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 628, Short.MAX_VALUE)
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(jLabel2)
@@ -472,11 +543,11 @@ public class MainJFrame extends javax.swing.JFrame {
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(layout.createSequentialGroup()
-                                .add(jTxtFldMainDir, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE)
+                                .add(jTxtFldMainDir, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 513, Short.MAX_VALUE)
                                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                                 .add(jBtnMainDir, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                             .add(layout.createSequentialGroup()
-                                .add(jTxtFldSecDir, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 420, Short.MAX_VALUE)
+                                .add(jTxtFldSecDir, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 513, Short.MAX_VALUE)
                                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                                 .add(jBtnSecDir, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))))
                     .add(statusBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -484,7 +555,7 @@ public class MainJFrame extends javax.swing.JFrame {
                         .add(jBtnLoad, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 140, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(jBtnSynch, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 129, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 120, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 213, Short.MAX_VALUE)
                         .add(jChkBoxUseHash)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(jChkBoxHideEquals)))
@@ -513,13 +584,29 @@ public class MainJFrame extends javax.swing.JFrame {
                         .add(jChkBoxHideEquals)
                         .add(jChkBoxUseHash)))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 236, Short.MAX_VALUE)
+                .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 338, Short.MAX_VALUE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(statusBar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         pack();
     }//GEN-END:initComponents
+
+    private void jMenuItemSaveOptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveOptActionPerformed
+        saveOptions();
+    }//GEN-LAST:event_jMenuItemSaveOptActionPerformed
+
+    private void jMenuItemLoadOptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLoadOptActionPerformed
+        loadOptions();
+    }//GEN-LAST:event_jMenuItemLoadOptActionPerformed
+    
+    private void jMenuItemUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemUnselRegexpActionPerformed
+        selectWithRegexp(false);
+    }//GEN-LAST:event_jMenuItemUnselRegexpActionPerformed
+    
+    private void jMenuItemSelRegexpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSelRegexpActionPerformed
+        selectWithRegexp(true);
+    }//GEN-LAST:event_jMenuItemSelRegexpActionPerformed
     
     private void jChkBxMenuItemIncSubdirsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jChkBxMenuItemIncSubdirsItemStateChanged
         if (!firstLoad) {
@@ -568,8 +655,9 @@ public class MainJFrame extends javax.swing.JFrame {
     private void jMenuItemDirSynchHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDirSynchHelpActionPerformed
         String helpText;
         try {
-            helpText = FileUtil.readFile(helpFile);
-            jEdtPaneHelp.setText(helpText);
+//            helpText = FileUtil.readFile(helpFile);
+//            jEdtPaneHelp.setText(helpText);
+            jEdtPaneHelp.setPage("file:///"+System.getProperty("user.dir")+File.separator+helpFile);
             jEdtPaneHelp.setCaretPosition(0);
             jDialogHelp.pack();
             jDialogHelp.setVisible(true);
@@ -752,6 +840,7 @@ public class MainJFrame extends javax.swing.JFrame {
                 int step = 0;
                 ProgressMonitor progressMonitor = null;
                 try {
+                    Logger.log(Logger.LEVEL_INFO, "Starting load process...");
                     setButtonsEnabled(false, false);
                     progressMonitor = new ProgressMonitor(mainFrame,
                             "Loading . . .",
@@ -767,7 +856,7 @@ public class MainJFrame extends javax.swing.JFrame {
                     progressMonitor.setNote("Loading main dir data");
                     progressMonitor.setProgress(++step);
                     // Step 2 - Loading main dir data
-                    mainDirMap = new HashMap();
+                    mainDirMap = new HashMap<String, File>();
                     // We need to remove the trailing "\" in the case one of the dirs is the root of a drive.
                     int rootPathSize = (mainDir.getPath().endsWith("\\") ? mainDir.getPath().length()-1 : mainDir.getPath().length());
                     Logger.log(Logger.LEVEL_DEBUG, "Main dir path: "+mainDir.getPath()+" ("+rootPathSize+")");
@@ -778,7 +867,7 @@ public class MainJFrame extends javax.swing.JFrame {
                     progressMonitor.setNote("Loading sec dir data");
                     progressMonitor.setProgress(++step);
                     // Step 3 - Loading sec dir data
-                    secDirMap = new HashMap();
+                    secDirMap = new HashMap<String, File>();
                     // We need to remove the trailing "\" in the case one of the dirs is the root of a drive.
                     rootPathSize = (secDir.getPath().endsWith("\\") ? secDir.getPath().length()-1 : secDir.getPath().length());
                     Logger.log(Logger.LEVEL_DEBUG, "Sec dir path: "+secDir.getPath()+" ("+rootPathSize+")");
@@ -790,7 +879,7 @@ public class MainJFrame extends javax.swing.JFrame {
                     progressMonitor.setProgress(++step);
                     // Step 4 - Comparing data
                     // Compare maps
-                    Vector files = new Vector(mainDirMap.size());
+                    Vector<FilePair> files = new Vector<FilePair>(mainDirMap.size());
                     // Main
                     Iterator iter = mainDirMap.keySet().iterator();
                     FilePair file;
@@ -816,7 +905,7 @@ public class MainJFrame extends javax.swing.JFrame {
                         String path = (String)iter.next();
                         if (!mainDirMap.containsKey(path)) {
                             file = new FilePair(path, mainDir, secDir);
-                                file.setUseHash(jChkBoxUseHash.isSelected());
+                            file.setUseHash(jChkBoxUseHash.isSelected());
                             file.setSecFile((File)secDirMap.get(file.getPath()));
                             files.add(file);
                             Logger.log(Logger.LEVEL_DEBUG, "File added sec: '"+file.getPath()+"'");
@@ -829,7 +918,7 @@ public class MainJFrame extends javax.swing.JFrame {
                     progressMonitor.setNote("Sorting data");
                     progressMonitor.setProgress(++step);
                     // Step 5 - Sorting data
-                    Collections.sort(files);
+                    Collections.<FilePair>sort(files);
                     if (progressMonitor.isCanceled()) {
                         throw new InterruptedException();
                     }
@@ -840,7 +929,9 @@ public class MainJFrame extends javax.swing.JFrame {
                     progressMonitor.setProgress(++step);
                     progressMonitor.close();
                     setButtonsEnabled(true, true);
+                    Logger.log(Logger.LEVEL_INFO, "Load process finished successfully.");
                 } catch (InterruptedException ex) {
+                    Logger.log(Logger.LEVEL_INFO, "Load process cancelled by user.");
                     JOptionPane.showMessageDialog(mainFrame,
                             "Loading operation CANCELED!", "Cancelled",
                             JOptionPane.WARNING_MESSAGE);
@@ -849,6 +940,7 @@ public class MainJFrame extends javax.swing.JFrame {
                         progressMonitor.close();
                     }
                 } catch (IOException ex) {
+                    Logger.log(Logger.LEVEL_ERROR, "Load process failed: "+ex.getMessage());
                     JOptionPane.showMessageDialog(mainFrame,
                             ex.getClass().getName() + ": " + ex.getMessage(),
                             "Error!",
@@ -856,6 +948,7 @@ public class MainJFrame extends javax.swing.JFrame {
                     Logger.log(Logger.LEVEL_ERROR, ex);
                     setButtonsEnabled(true, false);
                 } catch (NoSuchAlgorithmException ex) {
+                    Logger.log(Logger.LEVEL_ERROR, "Load process crashed: "+ex.getMessage());
                     JOptionPane.showMessageDialog(mainFrame,
                             ex.getClass().getName() + ": " + ex.getMessage(),
                             "Weird Error!",
@@ -881,48 +974,17 @@ public class MainJFrame extends javax.swing.JFrame {
             new File(System.getProperty("user.dir") + File.separator + ".nosynch"),
             new File(System.getProperty("user.dir") + File.separator + "_nosynch")
         };
-        noSynchMap = new HashMap();
-        for (int i = 0; i < noSynchFiles.length; i++) {
-            if (noSynchFiles[i].isFile() && noSynchFiles[i].canRead()) {
-//		System.out.println("File found: "+noSynchFiles[i]);
-                loadNoSynchFile(noSynchFiles[i]);
-//	    } else {
-//		System.out.println("File not found: "+noSynchFiles[i]);
-            }
-        }
+        noSynchMap = new SynchMapChecker();
+        noSynchMap.init(noSynchFiles);
     }
     
-    private Map getNoSynchMap() {
-        if (noSynchMap == null) {
-            noSynchMap = new HashMap();
-        }
-        return noSynchMap;
-    }
-    
-    private void loadNoSynchFile(File noSynchFile) {
-        Map map = getNoSynchMap();
-        try {
-            String[] lines = FileUtil.readFileAsArray(noSynchFile);
-            for (int i = 0; i < lines.length; i++) {
-                while (lines[i].endsWith("\r") || lines[i].endsWith("\n")) {
-                    lines[i] = lines[i].substring(0, lines[i].length()-1);
-                }
-                if (lines[i] != null && !"".equals(lines[i])) {
-                    map.put(lines[i], "1");
-                }
-            }
-        } catch (IOException e) {
-            Logger.log(Logger.LEVEL_ERROR, "Failed to load file '"+noSynchFile+"'.");
-            Logger.log(Logger.LEVEL_ERROR, e);
-        }
-    }
-    
-    private void buildMap(File dir, Map dirMap, int rootPathSize)
+    private void buildMap(File dir, Map<String, File> dirMap, int rootPathSize)
     throws IOException {
+        Logger.log(Logger.LEVEL_DEBUG, "buildMap: "+dir.getPath()+" - "+rootPathSize);
         File[] dirFiles = dir.listFiles();
         for (int i = 0; i < dirFiles.length; i++) {
             File file = dirFiles[i];
-            if (!noSynchMap.containsKey(file.getName())) {
+            if (!noSynchMap.match(file.getName())) {
                 if (file.isDirectory()) {
                     if (isIncludeSubdirs()) {
                         buildMap(file, dirMap, rootPathSize);
@@ -942,6 +1004,7 @@ public class MainJFrame extends javax.swing.JFrame {
             public void run() {
                 FilePair filePair = null;
                 try {
+                    Logger.log(Logger.LEVEL_INFO, "Starting synchronization process...");
                     setButtonsEnabled(false, false);
                     Vector files = ((FileVOTableModel)jTableFiles.getModel()).getFiles();
                     ProgressMonitor progressMonitor = new ProgressMonitor(mainFrame,
@@ -968,10 +1031,12 @@ public class MainJFrame extends javax.swing.JFrame {
                     }
                     progressMonitor.close();
                     if (cancel) {
+                        Logger.log(Logger.LEVEL_INFO, "Synchronization process cancelled by user.");
                         JOptionPane.showMessageDialog(mainFrame,
                                 "Synchronization CANCELED!", "Cancelled",
                                 JOptionPane.WARNING_MESSAGE);
                     } else {
+                        Logger.log(Logger.LEVEL_INFO, "Synchronization process finished successfully.");
                         JOptionPane.showMessageDialog(mainFrame,
                                 "Synchronization completed!", "Success",
                                 JOptionPane.INFORMATION_MESSAGE);
@@ -1047,7 +1112,7 @@ public class MainJFrame extends javax.swing.JFrame {
     
     private void showAbout() {
         JOptionPane.showMessageDialog(this,
-                "DirSynch "+version+"\n© 2007 Itamar Carvalho <itamarc at gmail.com>",
+                "DirSynch "+version+"\n© 2007 Itamar Carvalho <itamarc AT gmail\u00B7com>",
                 "About DirSynch",
                 JOptionPane.INFORMATION_MESSAGE);
     }
@@ -1099,6 +1164,108 @@ public class MainJFrame extends javax.swing.JFrame {
         return jChkBxMenuItemIncSubdirs.isSelected();
     }
     
+    private boolean isHashEnabled() {
+        return jChkBxMenuItemUseHash.isSelected();
+    }
+    
+    private boolean isHideEquals() {
+        return jChkBxMenuItemHideEquals.isSelected();
+    }
+    
+    private boolean isSynchTimesSameHash() {
+        return jChkBxMenuItemSynchTimesHash.isSelected();
+    }
+    
+    private void selectWithRegexp(boolean select) {
+        String regexp = JOptionPane.showInputDialog(this, "Regular expression:", "Regexp", JOptionPane.QUESTION_MESSAGE);
+        Pattern regPat = null;
+        while (regPat == null) {
+            try {
+                regPat = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+            } catch (PatternSyntaxException e) {
+                Logger.log(Logger.LEVEL_WARNING, "Pattern invalid: "+e.getMessage());
+                JOptionPane.showMessageDialog(this,
+                        "Pattern invalid: "+e.getMessage(),
+                        "Warning",
+                        JOptionPane.WARNING_MESSAGE);
+                regexp = JOptionPane.showInputDialog(this, "Regular expression:", regexp);
+            }
+        }
+        
+        Vector files = ((FileVOTableModel)jTableFiles.getModel()).getFiles();
+        for (int i = 0; i < files.size(); i++) {
+            // If the path of the pair matches the regexp
+            if (regPat.matcher(((FilePair)files.get(i)).getPath()).matches()) {
+                jTableFiles.getModel().setValueAt(select, i, 0);
+            }
+        }
+    }
+
+    private void loadOptions() {
+        JFileChooser fileDiag = new JFileChooser(System.getProperty("user.dir"));
+        FileFilter ff = new FileFilter() {
+            public boolean accept(File f) {
+                if (f.isFile()) {
+                    return f.getName().endsWith(".properties");
+                } else {
+                    return true;
+                }
+            }
+            public String getDescription() {
+                return "Properties Files (*.properties)";
+            }
+        };
+        fileDiag.setFileFilter(ff);
+        fileDiag.setDialogTitle("Load options from file...");
+        int ret = fileDiag.showOpenDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION) {
+            File propsFile = fileDiag.getSelectedFile();
+            Logger.log(Logger.LEVEL_DEBUG, "File selected to open: "+propsFile.getAbsolutePath());
+            propertiesFilePath = propsFile.getAbsolutePath();
+            initDirSynchProperties();
+            initOptions();
+        }
+    }
+
+    private void saveOptions() {
+        setOptionsInProps();
+        JFileChooser fileDiag = new JFileChooser(System.getProperty("user.dir"));
+        FileFilter ff = new FileFilter() {
+            public boolean accept(File f) {
+                return f.getName().endsWith(".properties");
+            }
+            public String getDescription() {
+                return "Properties Files (*.properties)";
+            }
+        };
+        fileDiag.setFileFilter(ff);
+        fileDiag.setDialogTitle("Save options to file...");
+        int ret = fileDiag.showSaveDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION) {
+            File propsFile = fileDiag.getSelectedFile();
+            Logger.log(Logger.LEVEL_DEBUG, "File selected to save: "+propsFile.getAbsolutePath());
+            if (!propsFile.getName().endsWith(".properties")) {
+                String newFile = propsFile.getAbsoluteFile()+".properties";
+                propsFile = new File(newFile);
+            }
+            try {
+                DirSynchProperties.save(propsFile);
+            } catch (FileNotFoundException ex) {
+                Logger.log(Logger.LEVEL_ERROR, ex);
+                JOptionPane.showMessageDialog(this,
+                        "Error saving file '"+propsFile.getAbsolutePath()+"':\n"+ex.getMessage(),
+                        "Warning!",
+                        JOptionPane.WARNING_MESSAGE);
+            } catch (IOException ex) {
+                Logger.log(Logger.LEVEL_ERROR, ex);
+                JOptionPane.showMessageDialog(this,
+                        "Error saving file '"+propsFile.getAbsolutePath()+"':\n"+ex.getMessage(),
+                        "Warning!",
+                        JOptionPane.WARNING_MESSAGE);
+            }
+        }
+    }
+    
     // Declaração de variáveis - não modifique//GEN-BEGIN:variables
     private javax.swing.JButton jBtnLoad;
     private javax.swing.JButton jBtnMainDir;
@@ -1121,11 +1288,15 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItemAbout;
     private javax.swing.JMenuItem jMenuItemAll;
     private javax.swing.JMenuItem jMenuItemDirSynchHelp;
+    private javax.swing.JMenuItem jMenuItemLoadOpt;
     private javax.swing.JMenuItem jMenuItemNewerInMain;
     private javax.swing.JMenuItem jMenuItemNewerInSec;
     private javax.swing.JMenuItem jMenuItemNone;
     private javax.swing.JMenuItem jMenuItemOnlyInMain;
     private javax.swing.JMenuItem jMenuItemOnlyInSec;
+    private javax.swing.JMenuItem jMenuItemSaveOpt;
+    private javax.swing.JMenuItem jMenuItemSelRegexp;
+    private javax.swing.JMenuItem jMenuItemUnselRegexp;
     private javax.swing.JMenuItem jMenuItemYesNo;
     private javax.swing.JMenu jMenuOptions;
     private javax.swing.JMenu jMenuSelect;
@@ -1134,6 +1305,8 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPaneHelp;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JSeparator jSeparator3;
+    private javax.swing.JSeparator jSeparator4;
     private javax.swing.JTable jTableFiles;
     private javax.swing.JTextField jTxtFldMainDir;
     private javax.swing.JTextField jTxtFldSecDir;

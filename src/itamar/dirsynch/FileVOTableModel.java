@@ -29,14 +29,14 @@ public class FileVOTableModel extends DefaultTableModel {
     /**
      * Vector of FilePair's.
      */
-    Vector files;
+    Vector<FilePair> files;
     
     /**
      * Sets both the files data and the hideEquals boolean attribute.
      * @param files A Vector with FilePair's.
      * @param hideEquals Boolean meaning if the FilePair's with equals files should be hidden or not.
      */
-    public void setFiles(Vector files, boolean hideEquals) {
+    public void setFiles(Vector<FilePair> files, boolean hideEquals) {
 	this.files = files;
 	this.hideEquals = hideEquals;
 	setRowCount(0);
@@ -53,9 +53,8 @@ public class FileVOTableModel extends DefaultTableModel {
      */
     public Vector getFiles() {
 	if (hideEquals) {
-	    Vector clean = new Vector();
-	    for (Iterator iter = files.iterator(); iter.hasNext();) {
-		FilePair filePair = (FilePair) iter.next();
+	    Vector<FilePair> clean = new Vector<FilePair>();
+            for (FilePair filePair: files) {
 		if (!filePair.isEquals()) {
 		    clean.add(filePair);
 		}
@@ -70,6 +69,8 @@ public class FileVOTableModel extends DefaultTableModel {
      * @param file A FilePair object to convert.
      * @return The Vector representing one row of the TableModel.
      */
+    // I know it's ugly to ignore the "unchecked" warning, but I can't find a better way for now.
+    @SuppressWarnings("unchecked")
     private Vector getDataVector(FilePair file) {
 	Vector v = new Vector();
 	v.add(new Boolean(file.getNewer() != FilePair.EQUALS));
