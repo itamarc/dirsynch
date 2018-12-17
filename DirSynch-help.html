@@ -136,13 +136,15 @@ Params:
             DirSynch ignores those files when synchronizing.</p>
                 <a name="roadmap"><h2>Roadmap</h2></a>
 <h3>Next release (v1.6):</h3>
-TBD
-<h3>Future releases:</h3>
 <ul class="tasks">
     <!-- FIXME --><li class="todo"> Bug: if synching only times and the file is open, there is no error message and the synch fails.
-    <!-- TODO --><li class="todo"> Hash only small files (smaller than ...)
     <!-- TODO --><li class="todo"> _onlysynch
     <!-- TODO --><li class="todo"> Wildcard characters (*, ?) in _onlysynch
+    <!-- TODO --><li class="todo"> Interface for the options that are only in the .properties file.
+</ul>
+<h3>Future releases:</h3>
+<ul class="tasks">
+    <!-- TODO --><li class="todo"> Hash only small files (smaller than ...)
     <!-- TODO --><li class="todo"> Verify after copy (with hash?)
     <!-- TODO --><li class="todo"> DirSynch.properties update (verify.copy)
     <ul><li>Options:<pre>
@@ -151,11 +153,18 @@ verify.copy=[boolean] (default: false)
     <!-- TODO --><li class="todo"> Option to overwrite or append to log file
     <!-- TODO --><li class="todo"> DirSynch.recent
     <!-- TODO --><li class="todo"> Interface to edit _nosynch's and _onlysynch's files
+    <!-- TODO --><li class="todo"> "Add to _nosynch" context menu
     <!-- TODO --><li class="todo"> Dir set to synch
     <!-- TODO --><li class="todo"> Disable Load button if any dir empty or inexistent
     <!-- TODO --><li class="todo"> Tree table view instead of a table (similar to EnCase&reg;)
     <!-- TODO --><li class="todo"> Synch a directory with a zip file
     <!-- TODO --><li class="todo"> Let the user decide about the action in BIG/sml files
+    <!-- TODO --><li class="todo"> Toolbar with common tools (check all/none/with regexp/...)
+</ul>
+<h3>v1.5.1 (21/05/2008):</h3>
+<ul class="tasks">
+    <li class="done"> Added and changed some INFO and DEBUG levels log messages
+    <li class="done"> Bug: when used the command line parameters to specify the main and sec dirs, the load config from .properties file fails to update the dirs
 </ul>
 <h3>v1.5 (17/05/2008):</h3>
 <ul class="tasks">

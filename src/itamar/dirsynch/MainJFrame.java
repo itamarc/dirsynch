@@ -50,7 +50,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private static String defaultMainDirPath = null;
     private static String defaultSecDirPath = null;
     
-    private static String version = "1.5";
+    private static String version = "1.5.1";
     private static boolean defaultKeep = false;
     private SynchMapChecker noSynchMap = null;
     private boolean firstLoad = true;
@@ -60,9 +60,6 @@ public class MainJFrame extends javax.swing.JFrame {
     /** Creates new form MainJFrame */
     public MainJFrame() {
         initDirSynchProperties();
-        Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile(), DirSynchProperties.isLogFileAppend());
-        Logger.log(Logger.LEVEL_INFO, "Properties initialized with file '"+propertiesFilePath+"'");
-        Logger.log(Logger.LEVEL_DEBUG, "Properties read: "+DirSynchProperties.getPropertiesAsString());
         initComponents();
         setTitle("DirSynch " + version);
         jTableFiles.getColumn("Sel").setMaxWidth(30);
@@ -108,6 +105,9 @@ public class MainJFrame extends javax.swing.JFrame {
                     "Warning!",
                     JOptionPane.WARNING_MESSAGE);
         }
+        Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile(), DirSynchProperties.isLogFileAppend());
+        Logger.log(Logger.LEVEL_INFO, "Properties initialized with file '"+propertiesFilePath+"'");
+        Logger.log(Logger.LEVEL_DEBUG, "Properties read: "+DirSynchProperties.getPropertiesAsString());
     }
     
     private void initOptions() {
@@ -982,8 +982,10 @@ public class MainJFrame extends javax.swing.JFrame {
     throws IOException {
         Logger.log(Logger.LEVEL_DEBUG, "buildMap: "+dir.getPath()+" - "+rootPathSize);
         File[] dirFiles = dir.listFiles();
+        Logger.log(Logger.LEVEL_DEBUG, "buildMap: "+dirFiles.length);
         for (int i = 0; i < dirFiles.length; i++) {
             File file = dirFiles[i];
+            Logger.log(Logger.LEVEL_DEBUG, "buildMap dirFiles["+i+"]: "+file.getPath());
             if (!noSynchMap.match(file.getName())) {
                 if (file.isDirectory()) {
                     if (isIncludeSubdirs()) {
@@ -1223,6 +1225,8 @@ public class MainJFrame extends javax.swing.JFrame {
             Logger.log(Logger.LEVEL_DEBUG, "File selected to open: "+propsFile.getAbsolutePath());
             propertiesFilePath = propsFile.getAbsolutePath();
             initDirSynchProperties();
+            defaultMainDirPath = null;
+            defaultSecDirPath = null;
             initOptions();
         }
     }
