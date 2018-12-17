@@ -1,3 +1,7 @@
 Thumbs.db
 .git
+build
+dist
+|.*~
+|.*swp
 

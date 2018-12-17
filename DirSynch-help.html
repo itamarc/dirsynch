@@ -89,13 +89,33 @@ Params:
 		<p>All files and directories with the names listed will be skipped.  For example: if you put "TEMP" in the _nosynch file and there are two directories with this name, in the main dir and inside a subdir "MyDir", both will be skipped and all its subdirs.
                 <p>The nosynch files are read every time the list is loaded, so you can change it "on the fly", without closing the program.
                 <a name="roadmap"><h2>Roadmap</h2></a>
-<h3>Next release (v1.4):</h3>
+<h3>Next release (v1.5):</h3>
 <ul>
-    <!-- TODO --><li> New option: Only adjust times if files have same hash value
     <!-- TODO --><li> Hash only small files (smaller than ...)
+    <!-- TODO --><li> _onlysynch
+    <!-- TODO --><li> Wildcard characters (*, ?) in _nosynch and _onlysynch
+</ul>
+<h3>Future releases:</h3>
+<ul>
     <!-- TODO --><li> DirSynch.recent
-    <!-- TODO --><li> Log levels: NONE, ERROR, WARNING, INFO, DEBUG
-    <!-- TODO --><li> DirSynch.properties
+    <!-- TODO --><li> Interface to edit _nosynch's and _onlysynch's files
+    <!-- TODO --><li> Dir set to synch
+    <!-- TODO --><li> Verify after copy (with hash?)
+    <!-- TODO --><li> DirSynch.properties update (verify.copy)
+    <ul><li>Options:<pre>
+verify.copy=[boolean] (default: false)
+</pre></ul>
+    <!-- TODO --><li> Disable Load button if any dir empty or inexistent
+    <!-- TODO --><li> Tree table view instead of a table (similar to EnCase&reg;)
+    <!-- TODO --><li> Synch a directory with a zip file
+</ul>
+<h3>v1.4 (26/01/2008):</h3>
+<ul>
+    <li> New option: Only adjust times if files have same hash value
+    <li> Fix bug for files with/without "/"
+    <li> Log levels: NONE, ERROR, WARNING, INFO, DEBUG
+    <li> Calc hash only for files with same size when synching times
+    <li> DirSynch.properties creation
     <ul><li>Options:<pre>
 hash.enabled=[boolean] (default: false)
 hash.onlysmall=[boolean] (default: true)
@@ -105,18 +125,8 @@ hide.equals=[boolean] (default: false)
 log.level=[NONE, ERROR, WARNING, INFO, DEBUG] (default: WARNING)
 log.file=[path to file] (default: .\DirSynch.log)
 </pre></ul>
-</ul>
-<h3>Future releases:</h3>
-<ul>
-    <!-- TODO --><li> Dir set to synch
-    <!-- TODO --><li> Verify after copy (with hash?)
-    <!-- TODO --><li> DirSynch.properties
-    <ul><li>Options:<pre>
-verify.copy=[boolean] (default: false)
-</pre></ul>
-    <!-- TODO --><li> Disable Load button if any dir empty or inexistent
-    <!-- TODO --><li> Tree table view instead of a table (similar to EnCase&reg;)
-    <!-- TODO --><li> Synch a directory with a zip file
+    <li> Command line new option: -prop=[properties file]
+    <li> Mnemonics in menu itens
 </ul>
 <h3>v1.3 (13/01/2008):</h3>
 <ul>

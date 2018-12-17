@@ -28,8 +28,8 @@ public class FilePair implements Comparable {
     private File mainFile;
     private File secFile;
     private boolean useHash = false;
-    private String mainFileHash;
-    private String secFileHash;
+    private String mainFileHash = null;
+    private String secFileHash = null;
     
     public static final short MAIN_BIGGER = 3;
     public static final short ONLY_MAIN = 2;
@@ -243,7 +243,7 @@ public class FilePair implements Comparable {
     throws IOException, NoSuchAlgorithmException {
         if (mainFile == null) {
             if (secFile == null) {  // None
-                // Impossile!!!
+                // Impossible!!!
                 throw new RuntimeException("AN IMPOSSIBLE THING HAPPENED!?!");
             } else { // Sec only
                 this.newer = ONLY_SEC;
@@ -258,11 +258,7 @@ public class FilePair implements Comparable {
                 long secSize = secFile.length();
                 if (useHash) { // Use hash true = Size -> Hash -> Time
                     if (mainSize == secSize) {
-                        mainFileHash = CryptoUtil.generateHashHex(mainFile, "MD5");
-                        secFileHash = CryptoUtil.generateHashHex(secFile, "MD5");
-//                        System.out.println(mainFile.getName()+" Main MD5: "+mainFileHash);
-//                        System.out.println(mainFile.getName()+" Sec  MD5: "+secFileHash);
-                        if (mainFileHash.equals(secFileHash)) {
+                        if (getMainFileHash().equals(getSecFileHash())) {
                             this.newer = EQUALS;
                         } else {
                             if (mainModif > secModif) {
@@ -273,21 +269,17 @@ public class FilePair implements Comparable {
                                 this.newer = DIFF_HASH;
                             }
                         }
-                    } else if (mainSize > secSize) {
+                    } else {
                         if (mainModif > secModif) {
                             this.newer = MAIN_NEWER;
                         } else if (mainModif < secModif) {
                             this.newer = SEC_NEWER;
                         } else { // mainModif == secModif
-                            this.newer = MAIN_BIGGER;
-                        }
-                    } else { // mainSize < secSize
-                        if (mainModif > secModif) {
-                            this.newer = MAIN_NEWER;
-                        } else if (mainModif < secModif) {
-                            this.newer = SEC_NEWER;
-                        } else { // mainModif == secModif
-                            this.newer = SEC_BIGGER;
+                            if (mainSize > secSize) {
+                                this.newer = MAIN_BIGGER;
+                            } else { // mainSize < secSize
+                                this.newer = SEC_BIGGER;
+                            }
                         }
                     }
                 } else { // Use hash false = Time -> Size
@@ -314,19 +306,43 @@ public class FilePair implements Comparable {
      * @param keepBackup
      * @throws java.io.IOException
      */
-    public void synchronize(boolean keepBackup)
-    throws IOException {
+    public void synchronize(boolean synchTimeHash, boolean keepBackup)
+    throws IOException, NoSuchAlgorithmException {
         if (newer == FilePair.EQUALS) {
-            return; // Do nothing
+            if (synchTimeHash && mainFile.lastModified() != secFile.lastModified()) {
+                if (mainFile.lastModified() > secFile.lastModified()) {
+                    secFile.setLastModified(mainFile.lastModified());
+                } else { // if (mainFile.lastModified() < secFile.lastModified()) {
+                    mainFile.setLastModified(secFile.lastModified());
+                }
+            } else {
+                return; // Do nothing
+            }
         } else if (newer == FilePair.MAIN_NEWER) {
-            // Copy main to sec
-            copy(mainFile, secFile, keepBackup);
+            // If the option "synch times if same hashes" is on
+            // and the files are the same (have same hash)
+            if (synchTimeHash
+                    && (mainFile.length() == secFile.length())
+                    && (getMainFileHash().equals(getSecFileHash()))) {
+                secFile.setLastModified(mainFile.lastModified());
+            } else {
+                // Copy main to sec
+                copy(mainFile, secFile, keepBackup);
+            }
         } else if (newer == FilePair.ONLY_MAIN) {
             // Copy main to sec dir
             copy(mainFile, new File(secDir + File.separator + path), keepBackup);
         } else if (newer == FilePair.SEC_NEWER) {
-            // Copy sec to main
-            copy(secFile, mainFile, keepBackup);
+            // If the option "synch times if same hashes" is on
+            // and the files are the same (have same hash)
+            if (synchTimeHash
+                    && (mainFile.length() == secFile.length())
+                    && (getMainFileHash().equals(getSecFileHash()))) {
+                mainFile.setLastModified(secFile.lastModified());
+            } else {
+                // Copy sec to main
+                copy(secFile, mainFile, keepBackup);
+            }
         } else if (newer == FilePair.ONLY_SEC) {
             // Copy sec to main dir
             copy(secFile, new File(mainDir + File.separator + path), keepBackup);
@@ -415,5 +431,23 @@ public class FilePair implements Comparable {
     
     public void setUseHash(boolean useHash) {
         this.useHash = useHash;
+    }
+    
+    public String getMainFileHash()
+    throws NoSuchAlgorithmException, FileNotFoundException, IOException {
+        if (mainFileHash == null && mainFile != null) {
+            mainFileHash = CryptoUtil.generateHashHex(mainFile, "MD5");
+        }
+//                        System.out.println(mainFile.getName()+" Main MD5: "+mainFileHash);
+        return mainFileHash;
+    }
+    
+    public String getSecFileHash()
+    throws NoSuchAlgorithmException, FileNotFoundException, IOException {
+        if (secFileHash == null && secFile != null) {
+            secFileHash = CryptoUtil.generateHashHex(secFile, "MD5");
+//                        System.out.println(secFile.getName()+" Sec  MD5: "+secFileHash);
+        }
+        return secFileHash;
     }
 }
