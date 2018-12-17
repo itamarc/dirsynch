@@ -1,0 +1,100 @@
+<html>
+	<head><title></title>
+		<style>
+			BODY { font-family: Arial; color: Navy; }
+			H1, H2, H3 { color: blue; }
+			DT { font-weight: bold; }
+		</style>
+	</head>
+	<body>
+		<h1>DirSynch</h1>
+                <a name="howtouse"><h2>How to use</h2></a>
+		<h3>Tipical usage</h3>
+		<ol>
+			<li>Select the main directory.
+			<li>Select the second directory.
+			<li>Hit the "Load" button and wait for the file list to be filled.
+			<li>Analyse the list and uncheck the files you don't want to synchronize.
+			<li>Hit the "Synchronize" button and wait until it finishes.
+			<li>A message will be shown: "Success" or "Failure".
+			<li>When you click "OK" in the message window, the list will be reloaded.
+		</ol>
+                <h3>Needed files</h3>
+                <ul>
+                    <li>DirSynch.jar</li>
+                    <li>DirSynch-help.html</li>
+                    <li>lib\swing-layout-1.0.jar</li>
+                </ul>
+                <p>The "swing-layout-1.0.jar" comes from NetBeans.
+		<h3>Command line parameters</h3>
+		I usually use this to create specific icons on my desktop, for each dir I usually synchronize.
+<pre>java[w] -jar DirSynch.jar [Params]
+Params:
+  -main [main dir path]  Set the main dir.
+  -sec [sec dir path]    Set the secondary dir.
+  -help                  Show this usage message.
+  -keep                  Keep backups.</pre>
+		<h3>Options</h3>
+		<dl>
+			<dt>Use hash</dt>
+			<dd>If this option is set, the file comparison will be performed in the following way:
+			<ol>
+				<li>Compare the files sizes.
+				<li>Calculate and compare the files MD5 hash, if the sizes are the same.
+				<li>Compare the files times, if the MD5 hashes are different.
+			</ol>
+			If the option is unset, the file comparison will be performed in the following way:
+			<ol>
+				<li>Compare the files times.
+				<li>Compare the files sizes, if the times are the same.
+			</ol>
+			<strong>WARNING:</strong> Calculating hashes can be a very slow process!  Use with care, specially if you're synching lots of files or large files.
+			</dd>
+			<dt>Hide equals</dt>
+			<dd>If this option is set, the files considered equals are not shown in the list.</dd>
+			<dt>Keep backup</dt>
+			<dd>If this option is set, the destination files are copied with ".bak" extension before overwritting.</dd>
+		</dl>
+		<h3>The .nosynch file</h3>
+		<p>To avoid synching some directory or file, just put it in a file (one per line) and save this file with the name ".nosynch" or "_nosynch".  Note that if you don't want to synch this file, you also will need to put it on the list.  The files listed in the nosynch file will not be shown in the list.
+		<p>The file can be located in one of this places:
+		<ul>
+			<li>In the main dir.
+			<li>In the second dir.
+			<li>In the user dir (according to the operating system).
+		</ul>
+		<p>Notice that all files found in those places will be loaded and used to avoid synching.  Currently only exact matches are used, no wildcards are supported and the case must be the same (case sensitive).
+		<p>All files and directories with the names listed will be skipped.  For example: if you put "TEMP" in the _nosynch file and there are two directories with this name, in the main dir and inside a subdir "MyDir", both will be skipped and all its subdirs.
+                <p>The nosynch files are read every time the list is loaded, so you can change it "on the fly", without closing the program.
+                <a name="roadmap"><h2>Roadmap</h2></a>
+<h3>Future releases:</h3>
+<ul>
+<li> Dir set to synch
+<li> DirSynch.recent
+<li> DirSynch.properties
+<li> Progress bar in synch (show the file name being copied and the percent of number of files)
+<li> Progress bar in load.
+<li> Verify after copy (with hash?)
+<li> Only YES/no
+<li> Disable Load button if any dir empty or inexistent
+<li> Tree view instead of a table
+<li> Option "Include subdirs"
+</ul>
+<h3>v1.2:</h3>
+<ul><li> Show file status:
+"Filename.ext - Main: 10/11/06 17:07:09 10.3Kb - Sec: 10/12/06 8:07:23 10.4Kb''
+<li> Log failure details
+<li> Use hash (true = Size -> Hash -> Time; false = Time -> Size)
+<li> Help
+<li> About
+</ul>
+<h3>v1.1:</h3>
+<ul><li> Checkbox to select/unselect itens
+<li> Implement synch
+<li> _nosynch
+<li> Disable Sync button when any dir changed
+<li> Fix bug: duplicated entries (one for Main, one for Sec)
+<li> Option "Hide equals"
+</ul>
+	</body>
+</html>

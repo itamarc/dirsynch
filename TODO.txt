@@ -1,7 +1,0 @@
-- Fix bug: duplicated entries (one for Main, one for Sec)
-- Option "Hide equals"
-- Checkbox to select/unselect itens
-- .ignore
-- Defaults from file
-- Option "Include subdirs"
-- Tree view instead of a table

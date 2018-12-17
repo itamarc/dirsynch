@@ -1,0 +1,12 @@
+DirSynch
+
+See DirSynch-help.html
+
+================
+
+Test data set:
+
+- Files with same size, different times
+- Files with same time, different sizes
+- Files with same time and size and different hashes
+- Equal files
