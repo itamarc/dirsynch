@@ -2,22 +2,22 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1">
         <file>
-            <url>src/itamar/dirsynch/MainJFrame.java</url>
-            <line>43</line>
-            <line>704</line>
-            <line>830</line>
-            <line>838</line>
-        </file>
-        <file>
-            <url>src/itamar/dirsynch/FilePair.java</url>
-            <line>241</line>
-            <line>321</line>
-            <line>332</line>
-        </file>
-        <file>
             <url>DirSynch-help.html</url>
             <line>3</line>
             <line>142</line>
+        </file>
+        <file>
+            <url>src/itamar/dirsynch/FilePair.java</url>
+            <line>245</line>
+            <line>329</line>
+            <line>340</line>
+        </file>
+        <file>
+            <url>src/itamar/dirsynch/MainJFrame.java</url>
+            <line>44</line>
+            <line>120</line>
+            <line>952</line>
+            <line>991</line>
         </file>
     </editor-bookmarks>
 </project-private>

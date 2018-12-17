@@ -32,13 +32,14 @@ public class MainJFrame extends javax.swing.JFrame {
     private File secDir;
     private static String defaultMainDirPath = null;
     private static String defaultSecDirPath = null;
-    private static String version = "1.6alpha5";
+    private static String version = "1.6alpha8";
     private static boolean defaultKeep = false;
     private boolean firstLoad = true;
     private boolean firstInit = true;
     private final String helpFile = "DirSynch-help.html";
     private static String propertiesFilePath = "DirSynch.properties";
     static DirSynchExceptionHandler handler = null;
+
     /** Creates new form MainJFrame */
     public MainJFrame() {
 	initDirSynchProperties();
@@ -52,6 +53,7 @@ public class MainJFrame extends javax.swing.JFrame {
 	ListSelectionModel rowSM = jTableFiles.getSelectionModel();
 	rowSM.addListSelectionListener(new ListSelectionListener() {
 
+			@Override
 	    public void valueChanged(ListSelectionEvent e) {
 		//Ignore extra messages.
 		if (e.getValueIsAdjusting()) {
@@ -116,6 +118,36 @@ public class MainJFrame extends javax.swing.JFrame {
 	jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
     }
 
+    private void selectLogFile() {
+		String userDir = System.getProperty("user.dir");
+        JFileChooser fileDiag = new JFileChooser(userDir);
+        FileFilter ff = new FileFilter() {
+			@Override
+            public boolean accept(File f) {
+                if (f.isFile()) {
+                    return f.getName().endsWith(".log");
+                } else {
+                    return true;
+                }
+            }
+			@Override
+            public String getDescription() {
+                return "Log Files (*.log)";
+            }
+        };
+        fileDiag.setFileFilter(ff);
+        fileDiag.setDialogTitle("Select log file...");
+        int ret = fileDiag.showOpenDialog(this);
+        if (ret == JFileChooser.APPROVE_OPTION) {
+            File logFile = fileDiag.getSelectedFile();
+	    if (logFile.getParent().equals(userDir)) {
+		jTxtFldLogFile.setText(logFile.getName());
+	    } else {
+		jTxtFldLogFile.setText(logFile.getAbsolutePath());
+	    }
+        }
+    }
+
     private void setOptionsInProps() {
 	DirSynchProperties.setMainDir(getMainDirPath());
 	DirSynchProperties.setSecDir(getSecDirPath());
@@ -138,6 +170,13 @@ public class MainJFrame extends javax.swing.JFrame {
         jDialogHelp = new javax.swing.JDialog();
         jScrollPaneHelp = new javax.swing.JScrollPane();
         jEdtPaneHelp = new javax.swing.JEditorPane();
+        jPanelLogOpt = new javax.swing.JPanel();
+        jLblLogFile = new javax.swing.JLabel();
+        jTxtFldLogFile = new javax.swing.JTextField();
+        jBtnLogFile = new javax.swing.JButton();
+        jLblLogLevel = new javax.swing.JLabel();
+        jCmbBoxLogLevel = new javax.swing.JComboBox();
+        jChkBoxLogAppend = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jTxtFldSecDir = new javax.swing.JTextField();
@@ -152,6 +191,15 @@ public class MainJFrame extends javax.swing.JFrame {
         jTableFiles = new javax.swing.JTable();
         jChkBoxHideEquals = new javax.swing.JCheckBox();
         jChkBoxUseHash = new javax.swing.JCheckBox();
+        jToolBar1 = new javax.swing.JToolBar();
+        jBtnSelAll = new javax.swing.JButton();
+        jBtnUnselAll = new javax.swing.JButton();
+        jBtnSelOnlyMain = new javax.swing.JButton();
+        jBtnSelOnlySec = new javax.swing.JButton();
+        jBtnSelNewerMain = new javax.swing.JButton();
+        jBtnSelNewerSec = new javax.swing.JButton();
+        jBtnSelRegexp = new javax.swing.JButton();
+        jBtnUnselRegexp = new javax.swing.JButton();
         jMenuBarDirSynch = new javax.swing.JMenuBar();
         jMenuTools = new javax.swing.JMenu();
         jMenuSelect = new javax.swing.JMenu();
@@ -174,6 +222,8 @@ public class MainJFrame extends javax.swing.JFrame {
         jChkBxMenuItemKeepBackup = new javax.swing.JCheckBoxMenuItem();
         jChkBxMenuItemSynchTimesHash = new javax.swing.JCheckBoxMenuItem();
         jSeparator4 = new javax.swing.JSeparator();
+        jMenuItemLogOpt = new javax.swing.JMenuItem();
+        jSeparator5 = new javax.swing.JSeparator();
         jMenuItemLoadOpt = new javax.swing.JMenuItem();
         jMenuItemSaveOpt = new javax.swing.JMenuItem();
         jMenuHelp = new javax.swing.JMenu();
@@ -187,8 +237,8 @@ public class MainJFrame extends javax.swing.JFrame {
         jScrollPaneHelp.setMinimumSize(new java.awt.Dimension(600, 400));
         jScrollPaneHelp.setPreferredSize(new java.awt.Dimension(600, 400));
 
-        jEdtPaneHelp.setEditable(false);
         jEdtPaneHelp.setContentType("text/html");
+        jEdtPaneHelp.setEditable(false);
         jScrollPaneHelp.setViewportView(jEdtPaneHelp);
 
         javax.swing.GroupLayout jDialogHelpLayout = new javax.swing.GroupLayout(jDialogHelp.getContentPane());
@@ -206,6 +256,58 @@ public class MainJFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jScrollPaneHelp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
+        );
+
+        jLblLogFile.setText("Log file:");
+
+        jBtnLogFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/dir.png"))); // NOI18N
+        jBtnLogFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBtnLogFileActionPerformed(evt);
+            }
+        });
+
+        jLblLogLevel.setText("Log level:");
+
+        jCmbBoxLogLevel.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "None", "Error", "Warning", "Info", "Debug" }));
+        jCmbBoxLogLevel.setSelectedIndex(2);
+
+        jChkBoxLogAppend.setText("Append to file if exists (don't overwrite).");
+
+        javax.swing.GroupLayout jPanelLogOptLayout = new javax.swing.GroupLayout(jPanelLogOpt);
+        jPanelLogOpt.setLayout(jPanelLogOptLayout);
+        jPanelLogOptLayout.setHorizontalGroup(
+            jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelLogOptLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLblLogFile)
+                    .addComponent(jLblLogLevel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanelLogOptLayout.createSequentialGroup()
+                        .addComponent(jTxtFldLogFile, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jBtnLogFile, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jCmbBoxLogLevel, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jChkBoxLogAppend))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanelLogOptLayout.setVerticalGroup(
+            jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelLogOptLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLblLogFile)
+                    .addComponent(jTxtFldLogFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jBtnLogFile))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCmbBoxLogLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLblLogLevel))
+                .addGap(6, 6, 6)
+                .addComponent(jChkBoxLogAppend)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -329,6 +431,129 @@ public class MainJFrame extends javax.swing.JFrame {
                 jChkBoxUseHashItemStateChanged(evt);
             }
         });
+
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
+
+        jBtnSelAll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/toolbar-sel-all.png"))); // NOI18N
+        jBtnSelAll.setToolTipText("Select all");
+        jBtnSelAll.setBorder(javax.swing.BorderFactory.createCompoundBorder());
+        jBtnSelAll.setFocusable(false);
+        jBtnSelAll.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jBtnSelAll.setMaximumSize(new java.awt.Dimension(33, 31));
+        jBtnSelAll.setMinimumSize(new java.awt.Dimension(33, 31));
+        jBtnSelAll.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jBtnSelAll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBtnSelAllActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jBtnSelAll);
+
+        jBtnUnselAll.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/toolbar-unsel-all.png"))); // NOI18N
+        jBtnUnselAll.setToolTipText("Unselect all");
+        jBtnUnselAll.setBorder(javax.swing.BorderFactory.createCompoundBorder());
+        jBtnUnselAll.setFocusable(false);
+        jBtnUnselAll.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jBtnUnselAll.setMaximumSize(new java.awt.Dimension(33, 31));
+        jBtnUnselAll.setMinimumSize(new java.awt.Dimension(33, 31));
+        jBtnUnselAll.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jBtnUnselAll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBtnUnselAllActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jBtnUnselAll);
+
+        jBtnSelOnlyMain.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/toolbar-sel-onlymain.png"))); // NOI18N
+        jBtnSelOnlyMain.setToolTipText("Select only in main dir");
+        jBtnSelOnlyMain.setBorder(javax.swing.BorderFactory.createCompoundBorder());
+        jBtnSelOnlyMain.setFocusable(false);
+        jBtnSelOnlyMain.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jBtnSelOnlyMain.setMaximumSize(new java.awt.Dimension(33, 31));
+        jBtnSelOnlyMain.setMinimumSize(new java.awt.Dimension(33, 31));
+        jBtnSelOnlyMain.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jBtnSelOnlyMain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBtnSelOnlyMainActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jBtnSelOnlyMain);
+
+        jBtnSelOnlySec.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/toolbar-sel-onlysec.png"))); // NOI18N
+        jBtnSelOnlySec.setToolTipText("Select only in sec dir");
+        jBtnSelOnlySec.setBorder(javax.swing.BorderFactory.createCompoundBorder());
+        jBtnSelOnlySec.setFocusable(false);
+        jBtnSelOnlySec.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jBtnSelOnlySec.setMaximumSize(new java.awt.Dimension(33, 31));
+        jBtnSelOnlySec.setMinimumSize(new java.awt.Dimension(33, 31));
+        jBtnSelOnlySec.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jBtnSelOnlySec.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBtnSelOnlySecActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jBtnSelOnlySec);
+
+        jBtnSelNewerMain.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/toolbar-sel-newermain.png"))); // NOI18N
+        jBtnSelNewerMain.setToolTipText("Select newer in main dir");
+        jBtnSelNewerMain.setBorder(javax.swing.BorderFactory.createCompoundBorder());
+        jBtnSelNewerMain.setFocusable(false);
+        jBtnSelNewerMain.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jBtnSelNewerMain.setMaximumSize(new java.awt.Dimension(33, 31));
+        jBtnSelNewerMain.setMinimumSize(new java.awt.Dimension(33, 31));
+        jBtnSelNewerMain.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jBtnSelNewerMain.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBtnSelNewerMainActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jBtnSelNewerMain);
+
+        jBtnSelNewerSec.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/toolbar-sel-newersec.png"))); // NOI18N
+        jBtnSelNewerSec.setToolTipText("Select newer in sec dir");
+        jBtnSelNewerSec.setBorder(javax.swing.BorderFactory.createCompoundBorder());
+        jBtnSelNewerSec.setFocusable(false);
+        jBtnSelNewerSec.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jBtnSelNewerSec.setMaximumSize(new java.awt.Dimension(33, 31));
+        jBtnSelNewerSec.setMinimumSize(new java.awt.Dimension(33, 31));
+        jBtnSelNewerSec.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jBtnSelNewerSec.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBtnSelNewerSecActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jBtnSelNewerSec);
+
+        jBtnSelRegexp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/toolbar-sel-regexp.png"))); // NOI18N
+        jBtnSelRegexp.setToolTipText("Select with regexp...");
+        jBtnSelRegexp.setBorder(javax.swing.BorderFactory.createCompoundBorder());
+        jBtnSelRegexp.setFocusable(false);
+        jBtnSelRegexp.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jBtnSelRegexp.setMaximumSize(new java.awt.Dimension(33, 31));
+        jBtnSelRegexp.setMinimumSize(new java.awt.Dimension(33, 31));
+        jBtnSelRegexp.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jBtnSelRegexp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBtnSelRegexpActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jBtnSelRegexp);
+
+        jBtnUnselRegexp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/toolbar-unsel-regexp.png"))); // NOI18N
+        jBtnUnselRegexp.setToolTipText("Unselect with regexp...");
+        jBtnUnselRegexp.setBorder(javax.swing.BorderFactory.createCompoundBorder());
+        jBtnUnselRegexp.setFocusable(false);
+        jBtnUnselRegexp.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jBtnUnselRegexp.setMaximumSize(new java.awt.Dimension(33, 31));
+        jBtnUnselRegexp.setMinimumSize(new java.awt.Dimension(33, 31));
+        jBtnUnselRegexp.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jBtnUnselRegexp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBtnUnselRegexpActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(jBtnUnselRegexp);
 
         jMenuTools.setMnemonic('t');
         jMenuTools.setText("Tools");
@@ -464,6 +689,15 @@ public class MainJFrame extends javax.swing.JFrame {
         jMenuOptions.add(jChkBxMenuItemSynchTimesHash);
         jMenuOptions.add(jSeparator4);
 
+        jMenuItemLogOpt.setText("Log options...");
+        jMenuItemLogOpt.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemLogOptActionPerformed(evt);
+            }
+        });
+        jMenuOptions.add(jMenuItemLogOpt);
+        jMenuOptions.add(jSeparator5);
+
         jMenuItemLoadOpt.setMnemonic('L');
         jMenuItemLoadOpt.setText("Load options...");
         jMenuItemLoadOpt.addActionListener(new java.awt.event.ActionListener() {
@@ -541,11 +775,13 @@ public class MainJFrame extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jChkBoxHideEquals)))
                 .addContainerGap())
+            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 648, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel1)
@@ -565,7 +801,7 @@ public class MainJFrame extends javax.swing.JFrame {
                         .addComponent(jChkBoxHideEquals)
                         .addComponent(jChkBoxUseHash)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 338, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(statusBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -698,6 +934,57 @@ public class MainJFrame extends javax.swing.JFrame {
 	load();
     }//GEN-LAST:event_jBtnLoadActionPerformed
 
+private void jMenuItemLogOptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLogOptActionPerformed
+    jTxtFldLogFile.setText(DirSynchProperties.getLogFile());
+    jCmbBoxLogLevel.setSelectedIndex(DirSynchProperties.getLogLevel());
+    jChkBoxLogAppend.setSelected(DirSynchProperties.isLogFileAppend());
+    if (JOptionPane.showConfirmDialog(this, jPanelLogOpt, "Log options",
+	    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+	    == JOptionPane.OK_OPTION) {
+	DirSynchProperties.setLogFile(jTxtFldLogFile.getText());
+	DirSynchProperties.setLogLevel((short)jCmbBoxLogLevel.getSelectedIndex());
+	DirSynchProperties.setLogFileAppend(jChkBoxLogAppend.isSelected());
+	Logger.init((short)jCmbBoxLogLevel.getSelectedIndex(),
+		jTxtFldLogFile.getText(), jChkBoxLogAppend.isSelected());
+    }
+}//GEN-LAST:event_jMenuItemLogOptActionPerformed
+
+private void jBtnLogFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnLogFileActionPerformed
+    selectLogFile();
+}//GEN-LAST:event_jBtnLogFileActionPerformed
+
+private void jBtnSelAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelAllActionPerformed
+	selectAllFiles(true);
+}//GEN-LAST:event_jBtnSelAllActionPerformed
+
+private void jBtnUnselAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnUnselAllActionPerformed
+	selectAllFiles(false);
+}//GEN-LAST:event_jBtnUnselAllActionPerformed
+
+private void jBtnSelOnlyMainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelOnlyMainActionPerformed
+	selectFilesByStatus(FilePair.ONLY_MAIN);
+}//GEN-LAST:event_jBtnSelOnlyMainActionPerformed
+
+private void jBtnSelOnlySecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelOnlySecActionPerformed
+	selectFilesByStatus(FilePair.ONLY_SEC);
+}//GEN-LAST:event_jBtnSelOnlySecActionPerformed
+
+private void jBtnSelNewerMainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelNewerMainActionPerformed
+	selectFilesByStatus(FilePair.MAIN_NEWER);
+}//GEN-LAST:event_jBtnSelNewerMainActionPerformed
+
+private void jBtnSelNewerSecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelNewerSecActionPerformed
+	selectFilesByStatus(FilePair.SEC_NEWER);
+}//GEN-LAST:event_jBtnSelNewerSecActionPerformed
+
+private void jBtnSelRegexpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelRegexpActionPerformed
+	selectWithRegexp(true);
+}//GEN-LAST:event_jBtnSelRegexpActionPerformed
+
+private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnUnselRegexpActionPerformed
+	selectWithRegexp(false);
+}//GEN-LAST:event_jBtnUnselRegexpActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -709,6 +996,7 @@ public class MainJFrame extends javax.swing.JFrame {
 	Thread.currentThread().setUncaughtExceptionHandler(handler);
         if (processParams(args)) {
             java.awt.EventQueue.invokeLater(new Runnable() {
+				@Override
                 public void run() {
 		    Thread.currentThread().setUncaughtExceptionHandler(handler);
 		    if (Thread.currentThread().getUncaughtExceptionHandler() != Thread.getDefaultUncaughtExceptionHandler()) {
@@ -1008,6 +1296,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private void loadOptions() {
         JFileChooser fileDiag = new JFileChooser(System.getProperty("user.dir"));
         FileFilter ff = new FileFilter() {
+			@Override
             public boolean accept(File f) {
                 if (f.isFile()) {
                     return f.getName().endsWith(".properties");
@@ -1015,6 +1304,7 @@ public class MainJFrame extends javax.swing.JFrame {
                     return true;
                 }
             }
+			@Override
             public String getDescription() {
                 return "Properties Files (*.properties)";
             }
@@ -1037,9 +1327,15 @@ public class MainJFrame extends javax.swing.JFrame {
         setOptionsInProps();
         JFileChooser fileDiag = new JFileChooser(System.getProperty("user.dir"));
         FileFilter ff = new FileFilter() {
+			@Override
             public boolean accept(File f) {
-                return f.getName().endsWith(".properties");
+                if (f.isFile()) {
+                    return f.getName().endsWith(".properties");
+                } else {
+                    return true;
+                }
             }
+			@Override
             public String getDescription() {
                 return "Properties Files (*.properties)";
             }
@@ -1074,20 +1370,33 @@ public class MainJFrame extends javax.swing.JFrame {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jBtnLoad;
+    private javax.swing.JButton jBtnLogFile;
     private javax.swing.JButton jBtnMainDir;
     private javax.swing.JButton jBtnSecDir;
+    private javax.swing.JButton jBtnSelAll;
+    private javax.swing.JButton jBtnSelNewerMain;
+    private javax.swing.JButton jBtnSelNewerSec;
+    private javax.swing.JButton jBtnSelOnlyMain;
+    private javax.swing.JButton jBtnSelOnlySec;
+    private javax.swing.JButton jBtnSelRegexp;
     private javax.swing.JButton jBtnSynch;
+    private javax.swing.JButton jBtnUnselAll;
+    private javax.swing.JButton jBtnUnselRegexp;
     private javax.swing.JCheckBox jChkBoxHideEquals;
+    private javax.swing.JCheckBox jChkBoxLogAppend;
     private javax.swing.JCheckBox jChkBoxUseHash;
     private javax.swing.JCheckBoxMenuItem jChkBxMenuItemHideEquals;
     private javax.swing.JCheckBoxMenuItem jChkBxMenuItemIncSubdirs;
     private javax.swing.JCheckBoxMenuItem jChkBxMenuItemKeepBackup;
     private javax.swing.JCheckBoxMenuItem jChkBxMenuItemSynchTimesHash;
     private javax.swing.JCheckBoxMenuItem jChkBxMenuItemUseHash;
+    private javax.swing.JComboBox jCmbBoxLogLevel;
     private javax.swing.JDialog jDialogHelp;
     private javax.swing.JEditorPane jEdtPaneHelp;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLblLogFile;
+    private javax.swing.JLabel jLblLogLevel;
     private javax.swing.JLabel jLblStatusBar;
     private javax.swing.JMenuBar jMenuBarDirSynch;
     private javax.swing.JMenu jMenuHelp;
@@ -1095,6 +1404,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItemAll;
     private javax.swing.JMenuItem jMenuItemDirSynchHelp;
     private javax.swing.JMenuItem jMenuItemLoadOpt;
+    private javax.swing.JMenuItem jMenuItemLogOpt;
     private javax.swing.JMenuItem jMenuItemNewerInMain;
     private javax.swing.JMenuItem jMenuItemNewerInSec;
     private javax.swing.JMenuItem jMenuItemNone;
@@ -1107,137 +1417,20 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JMenu jMenuOptions;
     private javax.swing.JMenu jMenuSelect;
     private javax.swing.JMenu jMenuTools;
+    private javax.swing.JPanel jPanelLogOpt;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPaneHelp;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JSeparator jSeparator5;
     private javax.swing.JTable jTableFiles;
+    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JTextField jTxtFldLogFile;
     private javax.swing.JTextField jTxtFldMainDir;
     private javax.swing.JTextField jTxtFldSecDir;
     private javax.swing.JPanel statusBar;
     // End of variables declaration//GEN-END:variables
-
-//    private class DirComparator implements Runnable {
-//
-//	private final MainJFrame mainFrame;
-//
-//	public DirComparator(MainJFrame mainFrame) {
-//	    this.mainFrame = mainFrame;
-//	}
-//
-//	public void run() {
-//	    int step = 0;
-//	    ProgressMonitor progressMonitor = null;
-//	    try {
-//		Logger.log(Logger.LEVEL_INFO, "Starting load process...");
-//		setButtonsEnabled(false, false);
-//		progressMonitor = new ProgressMonitor(mainFrame, "Loading . . .", "", 0, 6);
-//		progressMonitor.setMillisToDecideToPopup(0);
-//		progressMonitor.setMillisToPopup(0);
-//		progressMonitor.setNote("Loading no synch files");
-//		// Step 1 - Loading no synch files
-//		loadNoSynchFiles();
-//		if (progressMonitor.isCanceled()) {
-//		    throw new InterruptedException();
-//		}
-//		progressMonitor.setNote("Loading main dir data");
-//		progressMonitor.setProgress(++step);
-//		// Step 2 - Loading main dir data
-//		mainDirMap = new HashMap<String, File>();
-//		// We need to remove the trailing "\" in the case one of the dirs is the root of a drive.
-//		int rootPathSize = mainDir.getPath().endsWith("\\") ? mainDir.getPath().length() - 1 : mainDir.getPath().length();
-//		Logger.log(Logger.LEVEL_DEBUG, "Main dir path: " + mainDir.getPath() + " (" + rootPathSize + ")");
-//		buildMap(mainDir, mainDirMap, rootPathSize);
-//		if (progressMonitor.isCanceled()) {
-//		    throw new InterruptedException();
-//		}
-//		progressMonitor.setNote("Loading sec dir data");
-//		progressMonitor.setProgress(++step);
-//		// Step 3 - Loading sec dir data
-//		secDirMap = new HashMap<String, File>();
-//		// We need to remove the trailing "\" in the case one of the dirs is the root of a drive.
-//		rootPathSize = (secDir.getPath().endsWith("\\") ? secDir.getPath().length() - 1 : secDir.getPath().length());
-//		Logger.log(Logger.LEVEL_DEBUG, "Sec dir path: " + secDir.getPath() + " (" + rootPathSize + ")");
-//		buildMap(secDir, secDirMap, rootPathSize);
-//		if (progressMonitor.isCanceled()) {
-//		    throw new InterruptedException();
-//		}
-//		progressMonitor.setNote("Comparing data");
-//		progressMonitor.setProgress(++step);
-//		// Step 4 - Comparing data
-//		// Compare maps
-//		Vector<FilePair> files = new Vector<FilePair>(mainDirMap.size());
-//		// Main
-//		Iterator iter = mainDirMap.keySet().iterator();
-//		FilePair file;
-//		while (iter.hasNext()) {
-//		    if (progressMonitor.isCanceled()) {
-//			throw new InterruptedException();
-//		    }
-//		    file = new FilePair((String) iter.next(), mainDir, secDir);
-//		    file.setUseHash(jChkBoxUseHash.isSelected());
-//		    file.setMainFile((File) mainDirMap.get(file.getPath()));
-//		    Logger.log(Logger.LEVEL_DEBUG, "File added main: '" + file.getPath() + "'");
-//		    if (secDirMap.containsKey(file.getPath())) {
-//			file.setSecFile((File) secDirMap.get(file.getPath()));
-//		    }
-//		    files.add(file);
-//		}
-//		// Sec
-//		iter = secDirMap.keySet().iterator();
-//		while (iter.hasNext()) {
-//		    if (progressMonitor.isCanceled()) {
-//			throw new InterruptedException();
-//		    }
-//		    String path = (String) iter.next();
-//		    if (!mainDirMap.containsKey(path)) {
-//			file = new FilePair(path, mainDir, secDir);
-//			file.setUseHash(jChkBoxUseHash.isSelected());
-//			file.setSecFile((File) secDirMap.get(file.getPath()));
-//			files.add(file);
-//			Logger.log(Logger.LEVEL_DEBUG, "File added sec: '" + file.getPath() + "'");
-//		    }
-//		}
-//		// Show differences
-//		if (progressMonitor.isCanceled()) {
-//		    throw new InterruptedException();
-//		}
-//		progressMonitor.setNote("Sorting data");
-//		progressMonitor.setProgress(++step);
-//		// Step 5 - Sorting data
-//		Collections.<FilePair>sort(files);
-//		if (progressMonitor.isCanceled()) {
-//		    throw new InterruptedException();
-//		}
-//		progressMonitor.setNote("Preparing to show data");
-//		progressMonitor.setProgress(++step);
-//		// Step 6 - Preparing to show data
-//		((FileVOTableModel) jTableFiles.getModel()).setFiles(files, getHideEquals());
-//		progressMonitor.setProgress(++step);
-//		progressMonitor.close();
-//		setButtonsEnabled(true, true);
-//		Logger.log(Logger.LEVEL_INFO, "Load process finished successfully.");
-//	    } catch (InterruptedException ex) {
-//		Logger.log(Logger.LEVEL_INFO, "Load process cancelled by user.");
-//		JOptionPane.showMessageDialog(mainFrame, "Loading operation CANCELED!", "Cancelled", JOptionPane.WARNING_MESSAGE);
-//		setButtonsEnabled(true, false);
-//		if (progressMonitor != null) {
-//		    progressMonitor.close();
-//		}
-//	    } catch (IOException ex) {
-//		Logger.log(Logger.LEVEL_ERROR, "Load process failed: " + ex.getMessage());
-//		JOptionPane.showMessageDialog(mainFrame, ex.getClass().getName() + ": " + ex.getMessage(), "Error!", JOptionPane.ERROR_MESSAGE);
-//		Logger.log(Logger.LEVEL_ERROR, ex);
-//		setButtonsEnabled(true, false);
-//	    } catch (NoSuchAlgorithmException ex) {
-//		Logger.log(Logger.LEVEL_ERROR, "Load process crashed: " + ex.getMessage());
-//		JOptionPane.showMessageDialog(mainFrame, ex.getClass().getName() + ": " + ex.getMessage(), "Weird Error!", JOptionPane.ERROR_MESSAGE);
-//		Logger.log(Logger.LEVEL_ERROR, ex);
-//		setButtonsEnabled(true, false);
-//	    }
-//	}
-//    }
-    
+   
 }

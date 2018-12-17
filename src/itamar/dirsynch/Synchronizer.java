@@ -73,13 +73,6 @@ public class Synchronizer implements PropertyChangeListener {
 	    Thread.currentThread().setUncaughtExceptionHandler(
 		    new DirSynchExceptionHandler());
 	    FilePair filePair = null;
-	    if (filePair == null) {// START OF DAMN TESTING CODE
-		Logger.log(Logger.LEVEL_ERROR, "Throwing damn RuntimeException!");
-		Logger.log(Logger.LEVEL_ERROR, "Thread="+Thread.currentThread().getName());
-		Logger.log(Logger.LEVEL_ERROR, "UEH="+Thread.currentThread().getUncaughtExceptionHandler().getClass().getName());
-		Logger.log(Logger.LEVEL_ERROR, "sun.awt.exception.handler="+System.getProperty("sun.awt.exception.handler"));
-		throw new RuntimeException("Testando uncaught exception handler.");
-	    }// END OF DAMN TESTING CODE
 	    try {
 		for (int i = 0; i < selFiles.size(); i++) {
 		    if (progressMonitor.isCanceled()) {
@@ -114,6 +107,18 @@ public class Synchronizer implements PropertyChangeListener {
 		finalMsgType = JOptionPane.ERROR_MESSAGE;
 		Logger.log(Logger.LEVEL_ERROR, "Weird Error processing file: " + filePair);
 		Logger.log(Logger.LEVEL_ERROR, ex);
+	    } catch (RuntimeException ex) {
+		finalMsg = "Failure in synchronization process!";
+		finalTitle = "Unknown Error";
+		finalMsgType = JOptionPane.ERROR_MESSAGE;
+		Logger.log(Logger.LEVEL_ERROR, "Error processing file: " + filePair);
+		Logger.log(Logger.LEVEL_ERROR, ex);
+	    } catch (Throwable t) {
+		finalMsg = "Failure in synchronization process!";
+		finalTitle = "Unknown Throwable";
+		finalMsgType = JOptionPane.ERROR_MESSAGE;
+		Logger.log(Logger.LEVEL_ERROR, "Error processing file: " + filePair);
+		Logger.log(Logger.LEVEL_ERROR, t);
 	    }
 	    return null;
 	}
@@ -129,7 +134,6 @@ public class Synchronizer implements PropertyChangeListener {
 		    finalMsgType);
 	    mainFrame.load();
 	    mainFrame.setButtonsEnabled(true, true);
-		throw new RuntimeException("Testando uncaught exception handler 2.");
 	}
 
 	/*

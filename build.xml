@@ -75,7 +75,7 @@
             <zipfileset dir="www" includes="DirSynch-help.html"/>
             <zipfileset dir="." includes="DirSynch.properties"/>
             <zipfileset dir="www" includes="x.gif, v.gif, main-screen-small-1.5.png"/>
-            <zipfileset dir="${dist.dir}/lib" prefix="lib"/>
+            <!-- zipfileset dir="${dist.dir}/lib" prefix="lib"/ -->
         </zip>
     </target>
 </project>

@@ -96,6 +96,10 @@ public class Logger {
         }
     }
 
+    /**
+     * The log file name (with or without path).
+     * @return The log file.
+     */
     public static String getLogFile() {
 	return logFile;
     }

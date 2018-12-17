@@ -205,6 +205,7 @@ public class FilePair implements Comparable<FilePair> {
      * and sec dirs.
      * @return A string representation of this file.
      */
+	@Override
     public String toString() {
         return getPath() + (isInMainDir() ? " (+," : " (-,") + (isInSecDir() ? "+)" : "-)");
     }
@@ -214,6 +215,7 @@ public class FilePair implements Comparable<FilePair> {
      * @param obj
      * @return
      */
+	@Override
     public boolean equals(Object obj) {
         if (obj instanceof FilePair) {
             return getPath().equals(((FilePair)obj).getPath());
@@ -226,6 +228,7 @@ public class FilePair implements Comparable<FilePair> {
      *
      * @return
      */
+	@Override
     public int hashCode() {
         return getPath().hashCode();
     }
@@ -235,6 +238,7 @@ public class FilePair implements Comparable<FilePair> {
      * @param other
      * @return
      */
+	@Override
     public int compareTo(FilePair other) {
         return this.getPath().compareTo(other.getPath());
     }
@@ -315,10 +319,14 @@ public class FilePair implements Comparable<FilePair> {
             // (same hash), but have different timestamps
             if (synchTimeHash && mainFile.lastModified() != secFile.lastModified()) {
                 Logger.log(Logger.LEVEL_INFO, "Synching times [HashOn]: "+getPath());
-                if (mainFile.lastModified() > secFile.lastModified()) {
-                    secFile.setLastModified(mainFile.lastModified());
-                } else { // if (mainFile.lastModified() < secFile.lastModified()) {
-                    mainFile.setLastModified(secFile.lastModified());
+		if (mainFile.lastModified() > secFile.lastModified()) {
+		    if (!secFile.setLastModified(mainFile.lastModified())) {
+			throw new IOException("Can't synch time: " + getPath());
+		    }
+		} else { // if (mainFile.lastModified() < secFile.lastModified()) {
+                    if (!mainFile.setLastModified(secFile.lastModified())) {
+			throw new IOException("Can't synch time: " + getPath());
+		    }
                 }
             } else {
                 return; // Do nothing
@@ -330,7 +338,9 @@ public class FilePair implements Comparable<FilePair> {
                     && (mainFile.length() == secFile.length())
                     && (getMainFileHash().equals(getSecFileHash()))) {
                 Logger.log(Logger.LEVEL_INFO, "Synching times [MN]: "+getPath());
-                secFile.setLastModified(mainFile.lastModified());
+                if (!secFile.setLastModified(mainFile.lastModified())) {
+		    throw new IOException("Can't synch time: "+getPath());
+		}
             } else {
                 // Copy main to sec
                 Logger.log(Logger.LEVEL_INFO, "Copying file [MN]: "+getPath());
@@ -347,7 +357,9 @@ public class FilePair implements Comparable<FilePair> {
                     && (mainFile.length() == secFile.length())
                     && (getMainFileHash().equals(getSecFileHash()))) {
                 Logger.log(Logger.LEVEL_INFO, "Synching times [SN]: "+getPath());
-                mainFile.setLastModified(secFile.lastModified());
+                if (!mainFile.setLastModified(secFile.lastModified())) {
+		    throw new IOException("Can't synch time: "+getPath());
+		}
             } else {
                 // Copy sec to main
                 Logger.log(Logger.LEVEL_INFO, "Copying file [SN]: "+getPath());
@@ -358,7 +370,7 @@ public class FilePair implements Comparable<FilePair> {
             Logger.log(Logger.LEVEL_INFO, "Copying file [OS]: "+getPath());
             copy(secFile, new File(mainDir + File.separator + path), keepBackup);
         }
-        // TODO Let the user define action if newer == MAIN_BIGGER or SEC_BIGGER
+        // TODO Let the user define action if newer == MAIN_BIGGER or SEC_BIGGER (Issue #14)
         // For now, do nothing.
     }
     /**

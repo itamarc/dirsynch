@@ -53,6 +53,7 @@ public class DirComparator implements PropertyChangeListener {
     /**
      * Invoked when task's progress property changes.
      */
+	@Override
     public void propertyChange(PropertyChangeEvent evt) {
 	if ("progress".equals(evt.getPropertyName()))  {
 	    int progress = (Integer) evt.getNewValue();
@@ -202,6 +203,7 @@ public class DirComparator implements PropertyChangeListener {
 		new File(System.getProperty("user.dir") + File.separator + ".nosynch"),
 		new File(System.getProperty("user.dir") + File.separator + "_nosynch")
 	    };
+	    Logger.log(Logger.LEVEL_DEBUG, "user.dir: "+System.getProperty("user.dir"));
 	    noSynchMap = new SynchMapChecker();
 	    noSynchMap.init(noSynchFiles);
 	}
@@ -221,7 +223,7 @@ public class DirComparator implements PropertyChangeListener {
 	    for (int i = 0; i < dirFiles.length; i++) {
 		File file = dirFiles[i];
 		Logger.log(Logger.LEVEL_DEBUG, "buildMap dirFiles[" + i + "]: " + file.getPath());
-		if (!noSynchMap.match(file.getName())) {
+		if (!noSynchMap.match(file)) {
 		    Logger.log(Logger.LEVEL_DEBUG, "No match, verifying if it's a dir or a file...");
 		    if (file.isDirectory()) {
 			Logger.log(Logger.LEVEL_DEBUG, "It's a dir, checking if I'll follow it");
