@@ -1,6 +1,6 @@
 <html>
 	<head><title>DirSynch Help</title>
-		<style>
+		<style type="text/css">
 			BODY { font-family: Arial; color: Navy; }
 			H1, H2, H3 { color: blue; }
 			DT { font-weight: bold; }
@@ -22,8 +22,8 @@
 	<body>
 		<h1>DirSynch</h1>
 		<a href="http://dirsynch.dev.java.net">Visit the DirSynch project page at Java.Net<br>
-                <img src="main-screen-small-1.5.png" style="border: none;"></a>
-                <a name="howtouse"><h2>How to use</h2></a>
+			<img src="main-screen-small-1.6.png" style="border: none;" alt="Main Screen"></a>
+                <h2><a name="howtouse">How to use</a></h2>
 		<h3>Tipical usage</h3>
 		<ol>
 			<li>Select the main directory.
@@ -44,7 +44,8 @@
                 <h3>Files for this help</h3>
                 <ul>
                     <li>DirSynch-help.html</li>
-                    <li>main-screen-small-1.5.png</li>
+                    <li>main-screen-small-1.6.png</li>
+		    <li>toolbar-1.6.png</li>
                     <li>v.gif</li>
                     <li>x.gif</li>
                 </ul>
@@ -84,6 +85,19 @@ Params:
                             This command does not change the selection status of the files that don't match.</dd>
                     </dl></dd>
                 </dl>
+		<h3>Toolbar</h3>
+		<img src="toolbar-1.6.png" alt="[toolbar]">
+		<p>The toolbar has the following buttons:
+		<ol>
+			<li>Select all</li>
+			<li>Unselect all</li>
+			<li>Select only in main dir</li>
+			<li>Select only in sec dir</li>
+			<li>Select newer in main dir</li>
+			<li>Select newer in sec dir</li>
+			<li>Select with regexp...</li>
+			<li>Unselect with regexp...</li>
+		</ol>
 		<h3>Options</h3>
 		<dl>
                         <dt>Include subdirs</dt>
@@ -110,6 +124,8 @@ Params:
                         <dd>Sometimes files that are equals (having the exact same content -- and the same hash) have different times.
                         If this option is set, these files will have only the times synchronized without being copied again.
                         This option will slow a little the process, because the hash will be calculated for files with same size and different times.</dd>
+			<dt>Log options...</dt>
+			<dd>This option will show a dialog where you can: select the log file to be used, select the log level (from "none" to "debug" -- very verbose) and if the log file will have the new log messages appended to the end or if the file will be overwritten each time the program runs.</dd>
                         <dt>Load options...</dt>
                         <dd>Load the options (including the main and sec dirs) from a ".properties" file.</dd>
                         <dt>Save options...</dt>
@@ -141,19 +157,22 @@ Params:
                 <h3>Known issues</h3>
                 <p>If two files have the same times, but different sizes, they are marked as "BIG" (bigger) and "sml" (smaller).
             DirSynch ignores those files when synchronizing.</p>
-                <a name="roadmap"><h2>Roadmap</h2></a>
+                <h2><a name="roadmap">Roadmap</a></h2>
 		<p>To see the future plans, please access our <a href="http://dirsynch.dev.java.net/servlets/ProjectIssues" target="_blank">issue tracker page</a>.</p>
 		<p>History of versions:</p>
-<h3>v1.6 (__/__/2009):</h3>
+<!--h3>v1.7 (__/__/2009):</h3>
 <ul class="tasks">
-	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=1'>Issue #1 - When a file is open, the synch fails with no error msg</a></li>
 	<li class='todo'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=2'>Issue #2 - _onlysynch</a></li>
 	<li class='todo'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=3'>Issue #3 - Wildcard characters (*, ?) in _onlysynch</a></li>
+</ul-->
+<h3>v1.6 (10/09/2009):</h3>
+<ul class="tasks">
+	<li class='done'>Bug: <a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=1'>Issue #1 - When a file is open, the synch fails with no error msg</a></li>
+	<li class='done'>Bug: <a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=18'>Issue #18 - Save options dialog doesn't show dirs</a></li>
 	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=4'>Issue #4 - Interface for the options that are only in the .properties file</a></li>
 	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=13'>Issue #13 - Toolbar with common tools</a></li>
 	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=17'>Issue #17 - Change plain threads to SwingWorker</a></li>
-	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=18'>Issue #18 - Save options dialog doesn't show dirs</a></li>
-	<li class='todo'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=19'>Issue #19 - Update help file to v1.6</a></li>
+	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=19'>Issue #19 - Update help file to v1.6</a></li>
 </ul>
 <h3>v1.5.2 (28/05/2008):</h3>
 <ul class="tasks">

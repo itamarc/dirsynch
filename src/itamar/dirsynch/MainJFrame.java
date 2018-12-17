@@ -32,7 +32,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private File secDir;
     private static String defaultMainDirPath = null;
     private static String defaultSecDirPath = null;
-    private static String version = "1.6alpha8";
+    private static String version = "1.6";
     private static boolean defaultKeep = false;
     private boolean firstLoad = true;
     private boolean firstInit = true;
