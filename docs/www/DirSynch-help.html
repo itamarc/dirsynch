@@ -1,0 +1,265 @@
+<html>
+	<head><title>DirSynch Help</title>
+		<style type="text/css">
+			BODY { font-family: Arial; color: Navy; }
+			H1, H2, H3 { color: blue; }
+			DT { font-weight: bold; }
+                        ul.tasks {
+                            list-style-type: none;
+                            padding: 0px;
+                            margin: 0px;
+                        }
+                        ul li.done {
+                            background: url(v.gif) 0 11px no-repeat;
+                            margin-left: 30px;
+                            padding: 4px 25px 0px 18px;                        }
+                        ul li.todo {
+                            background: url(x.gif) 0 11px no-repeat;
+                            margin-left: 30px;
+                            padding: 4px 25px 0px 18px;                        }
+		</style>
+	</head>
+	<body>
+		<h1>DirSynch</h1>
+		<a href="http://dirsynch.dev.java.net">Visit the DirSynch project page at Java.Net<br>
+			<img src="main-screen-small-1.6.png" style="border: none;" alt="Main Screen"></a>
+                <h2><a name="howtouse">How to use</a></h2>
+		<h3>Tipical usage</h3>
+		<ol>
+			<li>Select the main directory.
+			<li>Select the second directory.
+			<li>Hit the "Load" button and wait for the file list to be filled.
+			<li>Analyse the list and uncheck the files you don't want to synchronize (you can use the Tools->Select menu or the toolbar).
+			<li>Hit the "Synchronize" button and wait until it finishes (a progress bar will be shown).
+			<li>If the operation is successful, when you click "OK" in the "Success" message window the list will be reloaded.
+		</ol>
+		<h3>System requirements</h3>
+		<ul>
+			<li>Java SE 6</li>
+		</ul>
+                <h3>Needed files</h3>
+                <ul>
+                    <li>DirSynch.jar</li>
+                </ul>
+                <h3>Files for this help</h3>
+                <ul>
+                    <li>DirSynch-help.html</li>
+                    <li>main-screen-small-1.6.png</li>
+		    <li>toolbar-1.6.png</li>
+                    <li>v.gif</li>
+                    <li>x.gif</li>
+                </ul>
+                <h3>Optional files</h3>
+                <ul>
+                    <li>DirSynch.properties</li>
+	            </ul>
+		<h3>Command line parameters</h3>
+		I use this to create specific icons on my desktop, for each dir I usually synchronize.
+<pre>java[w] -jar DirSynch.jar [Params]
+Params:
+  -main [main dir path]           Set the main dir.
+  -sec [sec dir path]             Set the secondary dir.
+  -keep                           Keep backups.
+  -prop [properties file path]    DirSynch.properties file path.
+  --help | -help | -h | /?        Show this usage message.</pre>
+                <h3>Tools</h3>
+                <dl>
+                    <dt>Select</dt>
+                    <dd><dl>
+                            <dt>All</dt>
+                            <dd>Select all files, except the equal ones.</dd>
+                            <dt>None</dt>
+                            <dd>Unselect all files.</dd>
+                            <dt>Only YES/no</dt>
+                            <dd>Select only the files that exists in one dir and not in the other.</dd>
+                            <dt>Only in main dir</dt>
+                            <dd>Select only the files that exists in the main dir and not in the second.</dd>
+                            <dt>Only in sec dir</dt>
+                            <dd>Select only the files that exists in the second dir and not in the main.</dd>
+                            <dt>Newer in main</dt>
+                            <dd>Select only the files that are newer in main dir than in the second.</dd>
+                            <dt>Newer in sec</dt>
+                            <dd>Select only the files that are newer in the second dir than in the main.</dd>
+                            <dt>Sel/Unsel with regexp...</dt>
+                            <dd>Let the user enter a regular expression (<a href="http://java.sun.com/javase/6/docs/api/java/util/regex/Pattern.html">Java syntax</a>) to select or unselect the files.
+                            This command does not change the selection status of the files that don't match.</dd>
+                    </dl></dd>
+                </dl>
+		<h3>Toolbar</h3>
+		<img src="toolbar-1.6.png" alt="[toolbar]">
+		<p>The toolbar has the following buttons:
+		<ol>
+			<li>Select all</li>
+			<li>Unselect all</li>
+			<li>Select only in main dir</li>
+			<li>Select only in sec dir</li>
+			<li>Select newer in main dir</li>
+			<li>Select newer in sec dir</li>
+			<li>Select with regexp...</li>
+			<li>Unselect with regexp...</li>
+		</ol>
+		<h3>Options</h3>
+		<dl>
+                        <dt>Include subdirs</dt>
+                        <dd>If set, include all subdirectories, if not, ignore the subdirectories. Default: checked.</dd>
+			<dt>Use hash</dt>
+			<dd>If this option is set, the file comparison will be performed in the following way:
+			<ol>
+				<li>Compare the files sizes.
+				<li>Calculate and compare the files MD5 hash, if the sizes are the same.
+				<li>Compare the files times, if the MD5 hashes are different.
+			</ol>
+			If the option is unset, the file comparison will be performed in the following way:
+			<ol>
+				<li>Compare the files times.
+				<li>Compare the files sizes, if the times are the same.
+			</ol>
+			<strong>WARNING:</strong> Calculating hashes can be a very slow process!  Use with care, specially if you're synching lots of files or large files.
+			</dd>
+			<dt>Hide equals</dt>
+			<dd>If this option is set, the files considered equals are not shown in the list.</dd>
+			<dt>Keep backup</dt>
+			<dd>If this option is set, the destination files are copied with ".bak" extension before overwritting.</dd>
+                        <dt>Synch times for same hashes</dt>
+                        <dd>Sometimes files that are equals (having the exact same content -- and the same hash) have different times.
+                        If this option is set, these files will have only the times synchronized without being copied again.
+                        This option will slow a little the process, because the hash will be calculated for files with same size and different times.</dd>
+			<dt>Log options...</dt>
+			<dd>This option will show a dialog where you can: select the log file to be used, select the log level (from "none" to "debug" -- very verbose) and if the log file will have the new log messages appended to the end or if the file will be overwritten each time the program runs.</dd>
+                        <dt>Load options...</dt>
+                        <dd>Load the options (including the main and sec dirs) from a ".properties" file.</dd>
+                        <dt>Save options...</dt>
+                        <dd>Save the current options (including the main and sec dirs) to a ".properties" file.</dd>
+		</dl>
+		<h3>The .nosynch file</h3>
+		<p>To avoid synching some directory or file, just put it in a file (one per line) and save this file with the name ".nosynch" or "_nosynch".  Note that if you don't want to synch this file, you also will need to put it on the list.  The files listed in the nosynch file will not be shown in the list.
+		<p>The file can be located in one of this places:
+		<ul>
+			<li>In the main dir.
+			<li>In the second dir.
+			<li>In the user dir (according to the operating system).
+		</ul>
+		<p>Notice that all files found in those places will be loaded and used to avoid synching.  Currently the case must be the same (case sensitive).
+		<p>All files and directories with the names listed will be skipped.  For example: if you put "TEMP" in the _nosynch file and there are two directories with this name, in the main dir and inside a subdir "MyDir", both will be skipped and all its subdirs.
+                <p>The nosynch files are read every time the list is loaded, so you can change it "on the fly", without closing the program.
+                <h4>Wildcards</h4>
+                <p>The lines in the .nosynch file that starts with the character "|" (pipe) are processed as 
+                regular expressions.  The syntax is the one from <code><a href="http://java.sun.com/javase/6/docs/api/java/util/regex/Pattern.html">java.util.regex.Pattern</a></code> class.</p>
+                <p>For example:
+                <dl>
+                    <dt><tt>|.+\.zip</tt></dt>
+                    <dd>This line matches all files with the extension ".zip" (case ignored), so those files won't be synchronized.</dd>
+                </dl>
+		<h4>Tips</h4>
+		<p>When I create a .nosynch file, I put ".nosynch" in the first line, to avoid synching itself.</p>
+		<p>I usually also put a line with "|.+~", to avoid copying backup files created by Vim.</p>
+		<p>My third line (when in Windows) usually is "Thumbs.db", as they're protected files and cause errors when I try to synch them.</p>
+                <h3>Known issues</h3>
+                <p>If two files have the same times, but different sizes, they are marked as "BIG" (bigger) and "sml" (smaller).
+            DirSynch ignores those files when synchronizing.</p>
+                <h2><a name="roadmap">Roadmap</a></h2>
+		<p>To see the future plans, please access our <a href="http://dirsynch.dev.java.net/servlets/ProjectIssues" target="_blank">issue tracker page</a>.</p>
+		<p>History of versions:</p>
+<!--h3>v1.7 (__/__/2009):</h3>
+<ul class="tasks">
+	<li class='todo'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=2'>Issue #2 - _onlysynch</a></li>
+	<li class='todo'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=3'>Issue #3 - Wildcard characters (*, ?) in _onlysynch</a></li>
+</ul-->
+<h3>v1.6 (10/09/2009):</h3>
+<ul class="tasks">
+	<li class='done'>Bug: <a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=1'>Issue #1 - When a file is open, the synch fails with no error msg</a></li>
+	<li class='done'>Bug: <a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=18'>Issue #18 - Save options dialog doesn't show dirs</a></li>
+	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=4'>Issue #4 - Interface for the options that are only in the .properties file</a></li>
+	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=13'>Issue #13 - Toolbar with common tools</a></li>
+	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=17'>Issue #17 - Change plain threads to SwingWorker</a></li>
+	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=19'>Issue #19 - Update help file to v1.6</a></li>
+</ul>
+<h3>v1.5.2 (28/05/2008):</h3>
+<ul class="tasks">
+    <li class="done"> Added and changed some INFO and DEBUG levels log messages
+    <li class="done"> Bug: When there is no .nosynch (or _nosynch) file or there is no wildcard pattern in it, the load operation hangs.
+</ul>
+<h3>v1.5.1 (21/05/2008):</h3>
+<ul class="tasks">
+    <li class="done"> Added and changed some INFO and DEBUG levels log messages
+    <li class="done"> Bug: when used the command line parameters to specify the main and sec dirs, the load config from .properties file fails to update the dirs
+</ul>
+<h3>v1.5 (17/05/2008):</h3>
+<ul class="tasks">
+    <li class="done"> Bug: if there is a path main:\aaa\bbb\ccc.doc and the dir sec:\aaa doesn't exists and there isn't a file main:\aaa\file.ext to be copied, the system crashes:<pre>
+java.io.FileNotFoundException: k:\modelos\LOC\Arrombamento\1315_06.odt (O sistema não pode encontrar o caminho especificado)
+	at java.io.FileOutputStream.open(Native Method)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at java.io.FileOutputStream.<init>(Unknown Source)
+	at com.oktiva.util.FileUtil.copy(FileUtil.java:74)
+	at itamar.dirsynch.FilePair.copy(FilePair.java:381)
+	at itamar.dirsynch.FilePair.synchronize(FilePair.java:343)
+	at itamar.dirsynch.MainJFrame$25.run(MainJFrame.java:969)
+	at java.lang.Thread.run(Unknown Source)
+</pre>
+    <li class="done"> DirSynch.properties update (synch.times.same.hash)
+    <ul><li>Options:<pre>
+synch.times.same.hash=[boolean] (default: true)
+</pre></ul>
+    <li class="done"> Wildcard characters (*, ?) in _nosynch
+    <li class="done"> Removed generics "unchecked" warnings in compilation.
+    <li class="done"> Select/Unselect with regexp
+    <li class="done"> Save current config (including dirs) to .properties file
+    <li class="done"> Load config from .properties file
+    <li class="done"> Updated this help file to include all new features since v1.3
+    <li class="done"> Option to overwrite or append to log file (log.file.append)
+    <ul><li>Options:<pre>
+log.file.append=[boolean] (default: true)
+</pre></ul>
+</ul>
+<h3>v1.4.1 (31/01/2008):</h3>
+<ul class="tasks">
+    <li class="done"> Added some INFO level log messages
+</ul>
+<h3>v1.4 (26/01/2008):</h3>
+<ul class="tasks">
+    <li class="done"> New option: Only adjust times if files have same hash value
+    <li class="done"> Fix bug for files with/without "/"
+    <li class="done"> Log levels: NONE, ERROR, WARNING, INFO, DEBUG
+    <li class="done"> Calc hash only for files with same size when synching times
+    <li class="done"> DirSynch.properties creation
+    <ul><li>Options:<pre>
+hash.enabled=[boolean] (default: false)
+hash.onlysmall=[boolean] (default: true)
+hash.smallmaxsize=[size in Kb] (default: 256)
+subdirs.include=[boolean] (default: true)
+hide.equals=[boolean] (default: false)
+log.level=[NONE, ERROR, WARNING, INFO, DEBUG] (default: WARNING)
+log.file=[path to file] (default: .\DirSynch.log)
+</pre></ul>
+    <li class="done"> Command line new option: -prop=[properties file]
+    <li class="done"> Mnemonics in menu itens
+</ul>
+<h3>v1.3 (13/01/2008):</h3>
+<ul class="tasks">
+    <li class="done"> Progress bar in synch (show the file name being copied and the percent of number of files)
+    <li class="done"> Progress bar in load.
+    <li class="done"> Select / Unselect : all/YES-no/New-old
+    <li class="done"> Option "Include subdirs" (default true)
+    <li class="done"> New interface for options (menu)
+</ul>
+<h3>v1.2 (30/11/2007):</h3>
+<ul class="tasks">
+<li class="done"> Show file status:
+"Filename.ext - Main: 10/11/06 17:07:09 10.3Kb - Sec: 10/12/06 8:07:23 10.4Kb''
+<li class="done"> Log failure details
+<li class="done"> Use hash (true = Size -> Hash -> Time; false = Time -> Size)
+<li class="done"> Help
+<li class="done"> About
+</ul>
+<h3>v1.1 (28/11/2007):</h3>
+<ul class="tasks">
+<li class="done"> Checkbox to select/unselect itens
+<li class="done"> Implement synch
+<li class="done"> _nosynch
+<li class="done"> Disable Sync button when any dir changed
+<li class="done"> Fix bug: duplicated entries (one for Main, one for Sec)
+<li class="done"> Option "Hide equals"
+</ul>
+	</body>
+</html>
