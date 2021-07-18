@@ -6,13 +6,17 @@
 package itamar.dirsynch;
 
 import com.oktiva.util.FileUtil;
-import itamar.util.Logger;
+import static itamar.util.Logger.LEVEL_DEBUG;
+import static itamar.util.Logger.LEVEL_ERROR;
+import static itamar.util.Logger.LEVEL_INFO;
+import static itamar.util.Logger.log;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Pattern;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 /* CURRENT:
  * synchMap = {
  *		".nosynch" => 1,
@@ -97,14 +101,14 @@ public class SynchMapChecker {
     
     private Map<String, String> getSynchMap() {
         if (synchMap == null) {
-            synchMap = new HashMap<String, String>();
+            synchMap = new HashMap<>();
         }
         return synchMap;
     }
     
     private Vector<Pattern> getWildCards() {
         if (wildCards == null) {
-            wildCards = new Vector<Pattern>();
+            wildCards = new Vector<>();
         }
         return wildCards;
     }
@@ -126,17 +130,17 @@ public class SynchMapChecker {
                 if (lines[i] != null && !"".equals(lines[i])) {
 					// TODO Implement optional tags (Issue #2)
                     if (lines[i].startsWith("|")) {
-                        wildCards.add(Pattern.compile(lines[i].substring(1), Pattern.CASE_INSENSITIVE));
+                        wildCards.add(Pattern.compile(lines[i].substring(1), CASE_INSENSITIVE));
                     } else {
                         map.put(lines[i], "1");
                     }
                 }
             }
-            Logger.log(Logger.LEVEL_INFO, "{No,Only}Synch file loaded: "+synchFile.getCanonicalPath());
-            Logger.log(Logger.LEVEL_DEBUG, "Map: "+map+"  WildCards: "+wildCards);
+            log(LEVEL_INFO, "{No,Only}Synch file loaded: "+synchFile.getCanonicalPath());
+            log(LEVEL_DEBUG, "Map: "+map+"  WildCards: "+wildCards);
         } catch (IOException e) {
-            Logger.log(Logger.LEVEL_ERROR, "Failed to load file '"+synchFile+"'.");
-            Logger.log(Logger.LEVEL_ERROR, e);
+            log(LEVEL_ERROR, "Failed to load file '"+synchFile+"'.");
+            log(LEVEL_ERROR, e);
         }
     }
 
@@ -149,9 +153,9 @@ public class SynchMapChecker {
 	 * @param synchFiles An array of File objects.
 	 */
     public void init(File[] synchFiles) {
-        for (int i = 0; i < synchFiles.length; i++) {
-            if (synchFiles[i].isFile() && synchFiles[i].canRead()) {
-                loadSynchFile(synchFiles[i]);
+        for (File synchFile : synchFiles) {
+            if (synchFile.isFile() && synchFile.canRead()) {
+                loadSynchFile(synchFile);
             }
         }
     }
@@ -164,18 +168,18 @@ public class SynchMapChecker {
 	 */
     public boolean match(File file) {
 		String fileName = file.getName();
-        Logger.log(Logger.LEVEL_DEBUG, "SynchMapChecker.match: "+fileName);
+        log(LEVEL_DEBUG, "SynchMapChecker.match: "+fileName);
         boolean match = getSynchMap().containsKey(fileName);
         if (!match) {
             for (int i = 0; i < getWildCards().size(); i++) {
                 if (((Pattern)getWildCards().get(i)).matcher(fileName).matches()){
                     match = true;
-                    Logger.log(Logger.LEVEL_DEBUG, "Match ["+getWildCards().get(i).pattern()+"]: "+fileName);
+                    log(LEVEL_DEBUG, "Match ["+getWildCards().get(i).pattern()+"]: "+fileName);
                     break;
                 }
             }
         }
-        Logger.log(Logger.LEVEL_DEBUG, "Exiting SynchMapChecker.match: "+match);
+        log(LEVEL_DEBUG, "Exiting SynchMapChecker.match: "+match);
         return match;
     }
 }

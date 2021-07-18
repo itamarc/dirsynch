@@ -3,8 +3,12 @@
  */
 package itamar.dirsynch;
 
-import itamar.util.Logger;
-import java.awt.Cursor;
+import static itamar.util.Logger.LEVEL_DEBUG;
+import static itamar.util.Logger.LEVEL_ERROR;
+import static itamar.util.Logger.LEVEL_INFO;
+import static itamar.util.Logger.log;
+import static java.awt.Cursor.WAIT_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -16,7 +20,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingWorker;
 
@@ -41,7 +47,7 @@ public class DirComparator implements PropertyChangeListener {
     }
 
     void execute() {
-	mainFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+	mainFrame.setCursor(getPredefinedCursor(WAIT_CURSOR));
 	progressMonitor = new ProgressMonitor(mainFrame, "Loading . . .", "", 0, 100);
 	progressMonitor.setMillisToDecideToPopup(0);
 	progressMonitor.setMillisToPopup(0);
@@ -71,7 +77,7 @@ public class DirComparator implements PropertyChangeListener {
 	    int step = 0;
 	    final int STEPS = 6;
 	    try {
-		Logger.log(Logger.LEVEL_INFO, "Starting load process...");
+		log(LEVEL_INFO, "Starting load process...");
 		mainFrame.setButtonsEnabled(false, false);
 		publish("Loading no synch files");
 		// Step 1 - Loading no synch files
@@ -82,10 +88,10 @@ public class DirComparator implements PropertyChangeListener {
 		publish("Loading main dir data");
 		setProgress(++step*(100/STEPS));
 		// Step 2 - Loading main dir data
-		mainDirMap = new HashMap<String, File>();
+		mainDirMap = new HashMap<>();
 		// We need to remove the trailing "\" in the case one of the dirs is the root of a drive.
 		int rootPathSize = mainDir.getPath().endsWith("\\") ? mainDir.getPath().length() - 1 : mainDir.getPath().length();
-		Logger.log(Logger.LEVEL_DEBUG, "Main dir path: " + mainDir.getPath() + " (" + rootPathSize + ")");
+		log(LEVEL_DEBUG, "Main dir path: " + mainDir.getPath() + " (" + rootPathSize + ")");
 		buildMap(mainDir, mainDirMap, rootPathSize);
 		if (progressMonitor.isCanceled()) {
 		    throw new InterruptedException();
@@ -93,10 +99,10 @@ public class DirComparator implements PropertyChangeListener {
 		publish("Loading sec dir data");
 		setProgress(++step*(100/STEPS));
 		// Step 3 - Loading sec dir data
-		secDirMap = new HashMap<String, File>();
+		secDirMap = new HashMap<>();
 		// We need to remove the trailing "\" in the case one of the dirs is the root of a drive.
 		rootPathSize = (secDir.getPath().endsWith("\\") ? secDir.getPath().length() - 1 : secDir.getPath().length());
-		Logger.log(Logger.LEVEL_DEBUG, "Sec dir path: " + secDir.getPath() + " (" + rootPathSize + ")");
+		log(LEVEL_DEBUG, "Sec dir path: " + secDir.getPath() + " (" + rootPathSize + ")");
 		buildMap(secDir, secDirMap, rootPathSize);
 		if (progressMonitor.isCanceled()) {
 		    throw new InterruptedException();
@@ -105,7 +111,7 @@ public class DirComparator implements PropertyChangeListener {
 		setProgress(++step*(100/STEPS));
 		// Step 4 - Comparing data
 		// Compare maps
-		Vector<FilePair> files = new Vector<FilePair>(mainDirMap.size());
+		Vector<FilePair> files = new Vector<>(mainDirMap.size());
 		// Main
 		Iterator iter = mainDirMap.keySet().iterator();
 		FilePair file;
@@ -116,7 +122,7 @@ public class DirComparator implements PropertyChangeListener {
 		    file = new FilePair((String) iter.next(), mainDir, secDir);
 		    file.setUseHash(mainFrame.isHashEnabled());
 		    file.setMainFile((File) mainDirMap.get(file.getPath()));
-		    Logger.log(Logger.LEVEL_DEBUG, "File added main: '" + file.getPath() + "'");
+		    log(LEVEL_DEBUG, "File added main: '" + file.getPath() + "'");
 		    if (secDirMap.containsKey(file.getPath())) {
 			file.setSecFile((File) secDirMap.get(file.getPath()));
 		    }
@@ -134,7 +140,7 @@ public class DirComparator implements PropertyChangeListener {
 			file.setUseHash(mainFrame.isHashEnabled());
 			file.setSecFile((File) secDirMap.get(file.getPath()));
 			files.add(file);
-			Logger.log(Logger.LEVEL_DEBUG, "File added sec: '" + file.getPath() + "'");
+			log(LEVEL_DEBUG, "File added sec: '" + file.getPath() + "'");
 		    }
 		}
 		// Show differences
@@ -154,21 +160,21 @@ public class DirComparator implements PropertyChangeListener {
 		mainFrame.setFilesInTable(files);
 		setProgress(100); // ++step*(100/6));
 		enableSynchBtn = true;
-		Logger.log(Logger.LEVEL_INFO, "Load process finished successfully, "+
+		log(LEVEL_INFO, "Load process finished successfully, "+
 			files.size()+" files loaded.");
 	    } catch (InterruptedException ex) {
-		Logger.log(Logger.LEVEL_INFO, "Load process cancelled by user.");
-		JOptionPane.showMessageDialog(mainFrame, "Loading operation CANCELED!", "Cancelled", JOptionPane.WARNING_MESSAGE);
+		log(LEVEL_INFO, "Load process canceled by user.");
+		showMessageDialog(mainFrame, "Loading operation CANCELED!", "Canceled", WARNING_MESSAGE);
 		mainFrame.setButtonsEnabled(true, false);
 	    } catch (IOException ex) {
-		Logger.log(Logger.LEVEL_ERROR, "Load process failed: " + ex.getMessage());
-		JOptionPane.showMessageDialog(mainFrame, ex.getClass().getName() + ": " + ex.getMessage(), "Error!", JOptionPane.ERROR_MESSAGE);
-		Logger.log(Logger.LEVEL_ERROR, ex);
+		log(LEVEL_ERROR, "Load process failed: " + ex.getMessage());
+		showMessageDialog(mainFrame, ex.getClass().getName() + ": " + ex.getMessage(), "Error!", ERROR_MESSAGE);
+		log(LEVEL_ERROR, ex);
 		mainFrame.setButtonsEnabled(true, false);
 	    } catch (NoSuchAlgorithmException ex) {
-		Logger.log(Logger.LEVEL_ERROR, "Load process crashed: " + ex.getMessage());
-		JOptionPane.showMessageDialog(mainFrame, ex.getClass().getName() + ": " + ex.getMessage(), "Weird Error!", JOptionPane.ERROR_MESSAGE);
-		Logger.log(Logger.LEVEL_ERROR, ex);
+		log(LEVEL_ERROR, "Load process crashed: " + ex.getMessage());
+		showMessageDialog(mainFrame, ex.getClass().getName() + ": " + ex.getMessage(), "Weird Error!", ERROR_MESSAGE);
+		log(LEVEL_ERROR, ex);
 		mainFrame.setButtonsEnabled(true, false);
 	    }
 	    return null;
@@ -203,7 +209,7 @@ public class DirComparator implements PropertyChangeListener {
 		new File(System.getProperty("user.dir") + File.separator + ".nosynch"),
 		new File(System.getProperty("user.dir") + File.separator + "_nosynch")
 	    };
-	    Logger.log(Logger.LEVEL_DEBUG, "user.dir: "+System.getProperty("user.dir"));
+	    log(LEVEL_DEBUG, "user.dir: "+System.getProperty("user.dir"));
 	    noSynchMap = new SynchMapChecker();
 	    noSynchMap.init(noSynchFiles);
 	}
@@ -217,22 +223,22 @@ public class DirComparator implements PropertyChangeListener {
 	 */
 	private void buildMap(File dir, Map<String, File> dirMap, int rootPathSize)
 		throws IOException {
-	    Logger.log(Logger.LEVEL_DEBUG, "buildMap: " + dir.getPath() + " - " + rootPathSize);
+	    log(LEVEL_DEBUG, "buildMap: " + dir.getPath() + " - " + rootPathSize);
 	    File[] dirFiles = dir.listFiles();
-	    Logger.log(Logger.LEVEL_DEBUG, "buildMap: " + dirFiles.length);
+	    log(LEVEL_DEBUG, "buildMap: " + dirFiles.length);
 	    for (int i = 0; i < dirFiles.length; i++) {
 		File file = dirFiles[i];
-		Logger.log(Logger.LEVEL_DEBUG, "buildMap dirFiles[" + i + "]: " + file.getPath());
+		log(LEVEL_DEBUG, "buildMap dirFiles[" + i + "]: " + file.getPath());
 		if (!noSynchMap.match(file)) {
-		    Logger.log(Logger.LEVEL_DEBUG, "No match, verifying if it's a dir or a file...");
+		    log(LEVEL_DEBUG, "No match, verifying if it's a dir or a file...");
 		    if (file.isDirectory()) {
-			Logger.log(Logger.LEVEL_DEBUG, "It's a dir, checking if I'll follow it");
+			log(LEVEL_DEBUG, "It's a dir, checking if I'll follow it");
 			if (mainFrame.isIncludeSubdirs()) {
-			    Logger.log(Logger.LEVEL_DEBUG, "Going to next level with file: " + file.getPath());
+			    log(LEVEL_DEBUG, "Going to next level with file: " + file.getPath());
 			    buildMap(file, dirMap, rootPathSize);
 			}
 		    } else {
-			Logger.log(Logger.LEVEL_DEBUG, "It's a file, putting in the map.");
+			log(LEVEL_DEBUG, "It's a file, putting in the map.");
 			dirMap.put(file.getPath().substring(rootPathSize), file);
 		    }
 		}

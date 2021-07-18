@@ -5,21 +5,55 @@
  */
 package itamar.dirsynch;
 
+import static itamar.dirsynch.DirSynchProperties.getMainDir;
+import static itamar.dirsynch.DirSynchProperties.getPropertiesAsString;
+import static itamar.dirsynch.DirSynchProperties.getSecDir;
+import static itamar.dirsynch.DirSynchProperties.isSubDirsInclude;
+import static itamar.dirsynch.DirSynchProperties.setHashEnabled;
+import static itamar.dirsynch.DirSynchProperties.setHideEquals;
+import static itamar.dirsynch.DirSynchProperties.setMainDir;
+import static itamar.dirsynch.DirSynchProperties.setSecDir;
+import static itamar.dirsynch.DirSynchProperties.setSubDirsInclude;
+import static itamar.dirsynch.DirSynchProperties.setSynchTimesSameHash;
+import static itamar.dirsynch.FilePair.MAIN_NEWER;
+import static itamar.dirsynch.FilePair.ONLY_MAIN;
+import static itamar.dirsynch.FilePair.ONLY_SEC;
+import static itamar.dirsynch.FilePair.SEC_NEWER;
 import itamar.util.Logger;
+import static itamar.util.Logger.LEVEL_DEBUG;
+import static itamar.util.Logger.LEVEL_ERROR;
+import static itamar.util.Logger.LEVEL_INFO;
+import static itamar.util.Logger.LEVEL_WARNING;
+import static itamar.util.Logger.log;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import static java.lang.Thread.currentThread;
+import static java.lang.Thread.getDefaultUncaughtExceptionHandler;
+import static java.lang.Thread.setDefaultUncaughtExceptionHandler;
 import java.security.NoSuchAlgorithmException;
 import java.util.Vector;
 import java.util.regex.Pattern;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import java.util.regex.PatternSyntaxException;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
+import static javax.swing.JFileChooser.APPROVE_OPTION;
+import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
+import static javax.swing.JOptionPane.OK_OPTION;
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
+import static javax.swing.JOptionPane.QUESTION_MESSAGE;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static javax.swing.JOptionPane.showConfirmDialog;
+import static javax.swing.JOptionPane.showInputDialog;
+import static javax.swing.JOptionPane.showMessageDialog;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
 /**
@@ -32,7 +66,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private File secDir;
     private static String defaultMainDirPath = null;
     private static String defaultSecDirPath = null;
-    private static String version = "1.6";
+    private static String version = "1.6.1alfa1";
     private static boolean defaultKeep = false;
     private boolean firstLoad = true;
     private boolean firstInit = true;
@@ -51,27 +85,22 @@ public class MainJFrame extends javax.swing.JFrame {
 	setStatusBarText(FilePair.getLegend());
 
 	ListSelectionModel rowSM = jTableFiles.getSelectionModel();
-	rowSM.addListSelectionListener(new ListSelectionListener() {
-
-			@Override
-	    public void valueChanged(ListSelectionEvent e) {
-		//Ignore extra messages.
-		if (e.getValueIsAdjusting()) {
-		    return;
-		}
-
-		ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-		if (lsm.isSelectionEmpty()) {
-		    //System.out.println("No rows are selected.");
-		    setStatusBarText(FilePair.getLegend());
-		} else {
-		    int selectedRow = lsm.getMinSelectionIndex();
+	rowSM.addListSelectionListener((ListSelectionEvent e) -> {
+            //Ignore extra messages.
+            if (e.getValueIsAdjusting()) {
+                return;
+            }
+            ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+            if (lsm.isSelectionEmpty()) {
+                //System.out.println("No rows are selected.");
+                setStatusBarText(FilePair.getLegend());
+            } else {
+                int selectedRow = lsm.getMinSelectionIndex();
 //                    System.out.println("Row " + selectedRow
 //                            + " is now selected.");
-		    updateStatus();
-		}
-	    }
-	});
+updateStatus();
+            }
+        });
 
 	initOptions();
 	firstInit = false;
@@ -82,36 +111,34 @@ public class MainJFrame extends javax.swing.JFrame {
 	    DirSynchProperties.init(propertiesFilePath);
 	} catch (FileNotFoundException ex) {
 	    ex.printStackTrace(); // Logger is not initialized at this point
-	    JOptionPane.showMessageDialog(this,
+	    showMessageDialog(this,
 		    "File '" + propertiesFilePath + "' not found!",
-		    "Warning!",
-		    JOptionPane.WARNING_MESSAGE);
+		    "Warning!", WARNING_MESSAGE);
 	} catch (IOException ex) {
 	    ex.printStackTrace(); // Logger is not initialized at this point
-	    JOptionPane.showMessageDialog(this,
+	    showMessageDialog(this,
 		    "Error reading file '" + propertiesFilePath + "':\n" + ex.getMessage(),
-		    "Warning!",
-		    JOptionPane.WARNING_MESSAGE);
+		    "Warning!", WARNING_MESSAGE);
 	}
 	if (!DirSynchProperties.getLogFile().equals(Logger.getLogFile())) {
 	    firstInit = true;
 	}
 	Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile(), DirSynchProperties.isLogFileAppend());
 	if (firstInit) {
-	    Logger.log(Logger.LEVEL_INFO, "==========  DirSynch v" + version + " started.  ==========");
+	    log(LEVEL_INFO, "==========  DirSynch v" + version + " started.  ==========");
 	}
-	Logger.log(Logger.LEVEL_INFO, "Properties initialized with file '" + propertiesFilePath + "'");
-	Logger.log(Logger.LEVEL_DEBUG, "Properties read: " + DirSynchProperties.getPropertiesAsString());
+	log(LEVEL_INFO, "Properties initialized with file '" + propertiesFilePath + "'");
+	log(LEVEL_DEBUG, "Properties read: " + getPropertiesAsString());
     }
 
     private void initOptions() {
 	// defaultXXXDirPath comes from command-line parameters and has priority over .properties file
-	setMainDirPath((defaultMainDirPath == null ? DirSynchProperties.getMainDir() : defaultMainDirPath));
-	setSecDirPath((defaultSecDirPath == null ? DirSynchProperties.getSecDir() : defaultSecDirPath));
+	setMainDirPath((defaultMainDirPath == null ? getMainDir() : defaultMainDirPath));
+	setSecDirPath((defaultSecDirPath == null ? getSecDir() : defaultSecDirPath));
 
-	Logger.log(Logger.LEVEL_DEBUG, "SubDirsInclude=" + DirSynchProperties.isSubDirsInclude());
+	log(LEVEL_DEBUG, "SubDirsInclude=" + isSubDirsInclude());
 	jChkBxMenuItemUseHash.setSelected(DirSynchProperties.isHashEnabled());
-	jChkBxMenuItemIncSubdirs.setSelected(DirSynchProperties.isSubDirsInclude());
+	jChkBxMenuItemIncSubdirs.setSelected(isSubDirsInclude());
 	jChkBxMenuItemHideEquals.setSelected(DirSynchProperties.isHideEquals());
 	jChkBxMenuItemSynchTimesHash.setSelected(DirSynchProperties.isSynchTimesSameHash());
 
@@ -138,7 +165,7 @@ public class MainJFrame extends javax.swing.JFrame {
         fileDiag.setFileFilter(ff);
         fileDiag.setDialogTitle("Select log file...");
         int ret = fileDiag.showOpenDialog(this);
-        if (ret == JFileChooser.APPROVE_OPTION) {
+        if (ret == APPROVE_OPTION) {
             File logFile = fileDiag.getSelectedFile();
 	    if (logFile.getParent().equals(userDir)) {
 		jTxtFldLogFile.setText(logFile.getName());
@@ -149,13 +176,13 @@ public class MainJFrame extends javax.swing.JFrame {
     }
 
     private void setOptionsInProps() {
-	DirSynchProperties.setMainDir(getMainDirPath());
-	DirSynchProperties.setSecDir(getSecDirPath());
+	setMainDir(getMainDirPath());
+	setSecDir(getSecDirPath());
 
-	DirSynchProperties.setHashEnabled(isHashEnabled());
-	DirSynchProperties.setSubDirsInclude(isIncludeSubdirs());
-	DirSynchProperties.setHideEquals(isHideEquals());
-	DirSynchProperties.setSynchTimesSameHash(isSynchTimesSameHash());
+	setHashEnabled(isHashEnabled());
+	setSubDirsInclude(isIncludeSubdirs());
+	setHideEquals(isHideEquals());
+	setSynchTimesSameHash(isSynchTimesSameHash());
 //        jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
     }
 
@@ -843,23 +870,23 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jChkBxMenuItemUseHashItemStateChanged
 
     private void jMenuItemNewerInSecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemNewerInSecActionPerformed
-	selectFilesByStatus(FilePair.SEC_NEWER);
+	selectFilesByStatus(SEC_NEWER);
     }//GEN-LAST:event_jMenuItemNewerInSecActionPerformed
 
     private void jMenuItemNewerInMainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemNewerInMainActionPerformed
-	selectFilesByStatus(FilePair.MAIN_NEWER);
+	selectFilesByStatus(MAIN_NEWER);
     }//GEN-LAST:event_jMenuItemNewerInMainActionPerformed
 
     private void jMenuItemOnlyInSecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemOnlyInSecActionPerformed
-	selectFilesByStatus(FilePair.ONLY_SEC);
+	selectFilesByStatus(ONLY_SEC);
     }//GEN-LAST:event_jMenuItemOnlyInSecActionPerformed
 
     private void jMenuItemOnlyInMainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemOnlyInMainActionPerformed
-	selectFilesByStatus(FilePair.ONLY_MAIN);
+	selectFilesByStatus(ONLY_MAIN);
     }//GEN-LAST:event_jMenuItemOnlyInMainActionPerformed
 
     private void jMenuItemYesNoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemYesNoActionPerformed
-	selectFilesByStatus(new short[]{FilePair.ONLY_MAIN, FilePair.ONLY_SEC});
+	selectFilesByStatus(new short[]{ONLY_MAIN, ONLY_SEC});
     }//GEN-LAST:event_jMenuItemYesNoActionPerformed
 
     private void jMenuItemNoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemNoneActionPerformed
@@ -880,7 +907,7 @@ public class MainJFrame extends javax.swing.JFrame {
 	    jDialogHelp.pack();
 	    jDialogHelp.setVisible(true);
 	} catch (IOException ex) {
-	    Logger.log(Logger.LEVEL_ERROR, ex);
+	    log(LEVEL_ERROR, ex);
 	}
     }//GEN-LAST:event_jMenuItemDirSynchHelpActionPerformed
 
@@ -938,13 +965,12 @@ private void jMenuItemLogOptActionPerformed(java.awt.event.ActionEvent evt) {//G
     jTxtFldLogFile.setText(DirSynchProperties.getLogFile());
     jCmbBoxLogLevel.setSelectedIndex(DirSynchProperties.getLogLevel());
     jChkBoxLogAppend.setSelected(DirSynchProperties.isLogFileAppend());
-    if (JOptionPane.showConfirmDialog(this, jPanelLogOpt, "Log options",
-	    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
-	    == JOptionPane.OK_OPTION) {
-	DirSynchProperties.setLogFile(jTxtFldLogFile.getText());
-	DirSynchProperties.setLogLevel((short)jCmbBoxLogLevel.getSelectedIndex());
-	DirSynchProperties.setLogFileAppend(jChkBoxLogAppend.isSelected());
-	Logger.init((short)jCmbBoxLogLevel.getSelectedIndex(),
+    if (showConfirmDialog(this, jPanelLogOpt, "Log options", OK_CANCEL_OPTION, PLAIN_MESSAGE)
+	    == OK_OPTION) {
+            DirSynchProperties.setLogFile(jTxtFldLogFile.getText());
+            DirSynchProperties.setLogLevel((short)jCmbBoxLogLevel.getSelectedIndex());
+            DirSynchProperties.setLogFileAppend(jChkBoxLogAppend.isSelected());
+            Logger.init((short)jCmbBoxLogLevel.getSelectedIndex(),
 		jTxtFldLogFile.getText(), jChkBoxLogAppend.isSelected());
     }
 }//GEN-LAST:event_jMenuItemLogOptActionPerformed
@@ -962,19 +988,19 @@ private void jBtnUnselAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
 }//GEN-LAST:event_jBtnUnselAllActionPerformed
 
 private void jBtnSelOnlyMainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelOnlyMainActionPerformed
-	selectFilesByStatus(FilePair.ONLY_MAIN);
+	selectFilesByStatus(ONLY_MAIN);
 }//GEN-LAST:event_jBtnSelOnlyMainActionPerformed
 
 private void jBtnSelOnlySecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelOnlySecActionPerformed
-	selectFilesByStatus(FilePair.ONLY_SEC);
+	selectFilesByStatus(ONLY_SEC);
 }//GEN-LAST:event_jBtnSelOnlySecActionPerformed
 
 private void jBtnSelNewerMainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelNewerMainActionPerformed
-	selectFilesByStatus(FilePair.MAIN_NEWER);
+	selectFilesByStatus(MAIN_NEWER);
 }//GEN-LAST:event_jBtnSelNewerMainActionPerformed
 
 private void jBtnSelNewerSecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelNewerSecActionPerformed
-	selectFilesByStatus(FilePair.SEC_NEWER);
+	selectFilesByStatus(SEC_NEWER);
 }//GEN-LAST:event_jBtnSelNewerSecActionPerformed
 
 private void jBtnSelRegexpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelRegexpActionPerformed
@@ -992,19 +1018,15 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
 	System.setProperty("sun.awt.exception.handler",
 	    DirSynchExceptionHandler.class.getName());
 	handler = new DirSynchExceptionHandler();
-	Thread.setDefaultUncaughtExceptionHandler(handler);
-	Thread.currentThread().setUncaughtExceptionHandler(handler);
+	setDefaultUncaughtExceptionHandler(handler);
+	currentThread().setUncaughtExceptionHandler(handler);
         if (processParams(args)) {
-            java.awt.EventQueue.invokeLater(new Runnable() {
-				@Override
-                public void run() {
-		    Thread.currentThread().setUncaughtExceptionHandler(handler);
-		    if (Thread.currentThread().getUncaughtExceptionHandler() != Thread.getDefaultUncaughtExceptionHandler()) {
-			System.err.println("UEH=" + Thread.currentThread().getUncaughtExceptionHandler().getClass().getName()+
-				" DefaultUEH="+Thread.getDefaultUncaughtExceptionHandler().getClass().getName());
-		    }
-                    new MainJFrame().setVisible(true);
+            EventQueue.invokeLater(() -> {
+                currentThread().setUncaughtExceptionHandler(handler);
+                if (currentThread().getUncaughtExceptionHandler() != getDefaultUncaughtExceptionHandler()) {
+                    System.err.println("UEH=" + currentThread().getUncaughtExceptionHandler().getClass().getName() + " DefaultUEH=" + getDefaultUncaughtExceptionHandler().getClass().getName());
                 }
+                new MainJFrame().setVisible(true);
             });
         }
     }
@@ -1013,21 +1035,35 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
         boolean continueAfterThis = true;
         try {
             for (int i = 0; i < args.length; i++) {
-                if ("-main".equals(args[i])) {
-                    defaultMainDirPath = args[++i];
-                } else if ("-sec".equals(args[i])) {
-                    defaultSecDirPath = args[++i];
-                } else if ("-prop".equals(args[i])) {
-                    propertiesFilePath = args[++i];
-                } else if ("-keep".equals(args[i])) {
-                    defaultKeep = true;
-                } else if ("-help".equals(args[i]) || "-h".equals(args[i]) || "/?".equals(args[i]) || "--help".equals(args[i])) {
-                    showUsage();
-                    continueAfterThis = false;
-                } else {
+                if (null == args[i]) {
                     System.out.println("Incorrect parameters!\n");
                     showUsage();
                     continueAfterThis = false;
+                } else switch (args[i]) {
+                    case "-main":
+                        defaultMainDirPath = args[++i];
+                        break;
+                    case "-sec":
+                        defaultSecDirPath = args[++i];
+                        break;
+                    case "-prop":
+                        propertiesFilePath = args[++i];
+                        break;
+                    case "-keep":
+                        defaultKeep = true;
+                        break;
+                    case "-help":
+                    case "-h":
+                    case "/?":
+                    case "--help":
+                        showUsage();
+                        continueAfterThis = false;
+                        break;
+                    default:
+                        System.out.println("Incorrect parameters!\n");
+                        showUsage();
+                        continueAfterThis = false;
+                        break;
                 }
             }
         } catch (ArrayIndexOutOfBoundsException e) {
@@ -1054,7 +1090,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
         String buttonName = button.getName();
         JFileChooser chooser = new JFileChooser();
         chooser.setAcceptAllFileFilterUsed(false);
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setFileSelectionMode(DIRECTORIES_ONLY);
         if ("jBtnMainDir".equals(buttonName)) {
             chooser.setCurrentDirectory(new File(getMainDirPath()));
         } else {
@@ -1063,7 +1099,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
         //DirFileFilter filter = new DirFileFilter();
         //chooser.setFileFilter(filter);
         int returnVal = chooser.showOpenDialog(this);
-        if(returnVal == JFileChooser.APPROVE_OPTION) {
+        if(returnVal == APPROVE_OPTION) {
             if ("jBtnMainDir".equals(buttonName)) {
                 setMainDirPath(chooser.getSelectedFile().getAbsolutePath());
             } else { // jBtnSecDir
@@ -1076,23 +1112,21 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     
     private boolean dirsOk() {
         mainDir = new File(getMainDirPath());
-        Logger.log(Logger.LEVEL_DEBUG, "Main dir: "+getMainDirPath());
+        log(LEVEL_DEBUG, "Main dir: "+getMainDirPath());
         if (!mainDir.isDirectory() || !mainDir.canRead()) {
-            JOptionPane.showMessageDialog(this,
+            showMessageDialog(this,
                     "Directory '" + mainDir + "' does not exist or can't be read.\nCheck the paths!",
-                    "Warning!",
-                    JOptionPane.WARNING_MESSAGE);
-	    Logger.log(Logger.LEVEL_INFO, "Main dir '" + mainDir + "' does not exist or can't be read.");
+                    "Warning!", WARNING_MESSAGE);
+	    log(LEVEL_INFO, "Main dir '" + mainDir + "' does not exist or can't be read.");
             return false;
         } else {
             secDir = new File(getSecDirPath());
-            Logger.log(Logger.LEVEL_DEBUG, "Sec dir: "+getSecDirPath());
+            log(LEVEL_DEBUG, "Sec dir: "+getSecDirPath());
             if (!secDir.isDirectory() || !secDir.canRead()) {
-                JOptionPane.showMessageDialog(this,
+                showMessageDialog(this,
                         "Directory '" + secDir + "' does not exist or can't be read.\nCheck the paths!",
-                        "Warning!",
-                        JOptionPane.WARNING_MESSAGE);
-		Logger.log(Logger.LEVEL_INFO, "Second dir '" + secDir + "' does not exist or can't be read.");
+                        "Warning!", WARNING_MESSAGE);
+		log(LEVEL_INFO, "Second dir '" + secDir + "' does not exist or can't be read.");
                 return false;
             } else {
                 return true;
@@ -1133,7 +1167,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
      * @return A Vector of FilePair with the selected files in the table.
      */
     protected Vector<FilePair> getSelectedFiles() {
-	Vector<FilePair> selectedFiles = new Vector<FilePair>();
+	Vector<FilePair> selectedFiles = new Vector<>();
 	Vector<FilePair> files = ((FileVOTableModel) jTableFiles.getModel()).getFiles();
 	jTableFiles.setEnabled(false);
 	for (int i = 0; i < files.size(); i++) {
@@ -1168,17 +1202,15 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
                 compareDirs();
                 firstLoad = false;
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this,
+                showMessageDialog(this,
                         ex.getClass().getName() + ": " + ex.getMessage(),
-                        "I/O Error!",
-                        JOptionPane.ERROR_MESSAGE);
-                Logger.log(Logger.LEVEL_ERROR, ex);
+                        "I/O Error!", ERROR_MESSAGE);
+                log(LEVEL_ERROR, ex);
             } catch (NoSuchAlgorithmException ex) {
-                JOptionPane.showMessageDialog(this,
+                showMessageDialog(this,
                         ex.getClass().getName() + ": " + ex.getMessage(),
-                        "Weird Error!",
-                        JOptionPane.ERROR_MESSAGE);
-                Logger.log(Logger.LEVEL_ERROR, ex);
+                        "Weird Error!", ERROR_MESSAGE);
+                log(LEVEL_ERROR, ex);
             }
         }
     }
@@ -1198,23 +1230,22 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     }
     
     private void showAbout() {
-        JOptionPane.showMessageDialog(this,
+        showMessageDialog(this,
                 "DirSynch "+version+"\nhttps://dirsynch.dev.java.net\n© 2007 Itamar Carvalho <itamarc+dirsynch AT gmail\u00B7com>",
-                "About DirSynch",
-                JOptionPane.INFORMATION_MESSAGE);
+                "About DirSynch", INFORMATION_MESSAGE);
     }
     
     private void selectAllFiles(boolean checked) {
         // If the action is to uncheck all or if the "hide equals" option is on, do all
         if (!checked || getHideEquals()) {
             for (int i = 0; i < ((FileVOTableModel)jTableFiles.getModel()).getRowCount(); i++) {
-                jTableFiles.getModel().setValueAt(new Boolean(checked), i, 0);
+                jTableFiles.getModel().setValueAt(checked, i, 0);
             }
         } else {  // Select only the different files
             Vector files = ((FileVOTableModel)jTableFiles.getModel()).getFiles();
             for (int i = 0; i < files.size(); i++) {
                 if (!((FilePair)files.get(i)).isEquals()) {
-                    jTableFiles.getModel().setValueAt(new Boolean(checked), i, 0);
+                    jTableFiles.getModel().setValueAt(checked, i, 0);
                 }
             }
         }
@@ -1269,18 +1300,17 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     }
 
     private void selectWithRegexp(boolean select) {
-        String regexp = JOptionPane.showInputDialog(this, "Regular expression:", "Regexp", JOptionPane.QUESTION_MESSAGE);
+        String regexp = showInputDialog(this, "Regular expression:", "Regexp", QUESTION_MESSAGE);
         Pattern regPat = null;
         while (regPat == null) {
             try {
-                regPat = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+                regPat = Pattern.compile(regexp, CASE_INSENSITIVE);
             } catch (PatternSyntaxException e) {
-                Logger.log(Logger.LEVEL_WARNING, "Pattern invalid: "+e.getMessage());
-                JOptionPane.showMessageDialog(this,
+                log(LEVEL_WARNING, "Pattern invalid: "+e.getMessage());
+                showMessageDialog(this,
                         "Pattern invalid: "+e.getMessage(),
-                        "Warning",
-                        JOptionPane.WARNING_MESSAGE);
-                regexp = JOptionPane.showInputDialog(this, "Regular expression:", regexp);
+                        "Warning", WARNING_MESSAGE);
+                regexp = showInputDialog(this, "Regular expression:", regexp);
             }
         }
         
@@ -1312,9 +1342,9 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
         fileDiag.setFileFilter(ff);
         fileDiag.setDialogTitle("Load options from file...");
         int ret = fileDiag.showOpenDialog(this);
-        if (ret == JFileChooser.APPROVE_OPTION) {
+        if (ret == APPROVE_OPTION) {
             File propsFile = fileDiag.getSelectedFile();
-            Logger.log(Logger.LEVEL_DEBUG, "File selected to open: "+propsFile.getAbsolutePath());
+            log(LEVEL_DEBUG, "File selected to open: "+propsFile.getAbsolutePath());
             propertiesFilePath = propsFile.getAbsolutePath();
             initDirSynchProperties();
             defaultMainDirPath = null;
@@ -1343,9 +1373,9 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
         fileDiag.setFileFilter(ff);
         fileDiag.setDialogTitle("Save options to file...");
         int ret = fileDiag.showSaveDialog(this);
-        if (ret == JFileChooser.APPROVE_OPTION) {
+        if (ret == APPROVE_OPTION) {
             File propsFile = fileDiag.getSelectedFile();
-            Logger.log(Logger.LEVEL_DEBUG, "File selected to save: "+propsFile.getAbsolutePath());
+            log(LEVEL_DEBUG, "File selected to save: "+propsFile.getAbsolutePath());
             if (!propsFile.getName().endsWith(".properties")) {
                 String newFile = propsFile.getAbsoluteFile()+".properties";
                 propsFile = new File(newFile);
@@ -1353,17 +1383,15 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
             try {
                 DirSynchProperties.save(propsFile);
             } catch (FileNotFoundException ex) {
-                Logger.log(Logger.LEVEL_ERROR, ex);
-                JOptionPane.showMessageDialog(this,
+                log(LEVEL_ERROR, ex);
+                showMessageDialog(this,
                         "Error saving file '"+propsFile.getAbsolutePath()+"':\n"+ex.getMessage(),
-                        "Warning!",
-                        JOptionPane.WARNING_MESSAGE);
+                        "Warning!", WARNING_MESSAGE);
             } catch (IOException ex) {
-                Logger.log(Logger.LEVEL_ERROR, ex);
-                JOptionPane.showMessageDialog(this,
+                log(LEVEL_ERROR, ex);
+                showMessageDialog(this,
                         "Error saving file '"+propsFile.getAbsolutePath()+"':\n"+ex.getMessage(),
-                        "Warning!",
-                        JOptionPane.WARNING_MESSAGE);
+                        "Warning!", WARNING_MESSAGE);
             }
         }
     }

@@ -100,40 +100,39 @@ public final class FileUtil {
 			String targetfile, target, targetdest;
 			String[] files = src.list();
 			
-			for (int i = 0; i < files.length; i++) {
-				targetfile = files[i];
-				target = src + File.separator + targetfile;
-				targetdest = dest + File.separator + targetfile;
-				
-				if ((new File(target)).isDirectory()) {
-					copy(new File(target), new File(targetdest));
-				} else {
-					try {
-						source = new FileInputStream(target);
-						destination = new FileOutputStream(targetdest);
-						buffer = new byte[1024];
-						
-						while (true) {
-							bytes_read = source.read(buffer);
-							if (bytes_read == -1) {
-								break;
-							}
-							destination.write(buffer, 0, bytes_read);
-						}
-					} finally {
-						if (source != null) {
-							try {
-								source.close();
-							} catch (IOException e) {}
-						}
-						if (destination != null) {
-							try {
-								destination.close();
-							} catch (IOException e) {}
-						}
-					}
-				}
-			}
+            for (String file : files) {
+                targetfile = file;
+                target = src + File.separator + targetfile;
+                targetdest = dest + File.separator + targetfile;
+                if ((new File(target)).isDirectory()) {
+                    copy(new File(target), new File(targetdest));
+                } else {
+                    try {
+                        source = new FileInputStream(target);
+                        destination = new FileOutputStream(targetdest);
+                        buffer = new byte[1024];
+                        
+                        while (true) {
+                            bytes_read = source.read(buffer);
+                            if (bytes_read == -1) {
+                                break;
+                            }
+                            destination.write(buffer, 0, bytes_read);
+                        }
+                    } finally {
+                        if (source != null) {
+                            try {
+                                source.close();
+                            } catch (IOException e) {}
+                        }
+                        if (destination != null) {
+                            try {
+                                destination.close();
+                            } catch (IOException e) {}
+                        }
+                    }
+                }
+            }
 		}
 	}
 	/**
@@ -284,9 +283,8 @@ public final class FileUtil {
 	 */
 	public static final void writeFile(String text, FileWriter fileWriter)
 	throws IOException {
-		PrintWriter out = new PrintWriter(fileWriter);
-		out.write(text);
-		out.close();
+        try (PrintWriter out = new PrintWriter(fileWriter)) {
+            out.write(text);
+        }
 	}
 }
-

@@ -57,7 +57,7 @@ public class Logger {
     }
     
     public static void log(short msgLevel, String message) {
-        if (msgLevel <= Logger.level) {
+        if (msgLevel <= level) {
             System.err.println(new Date().toString() + " [" + getLevelName(msgLevel) + "] " + message);
             System.err.flush();
         } else if (level < 0) {
@@ -68,7 +68,7 @@ public class Logger {
     }
     
     public static void log(short msgLevel, Throwable ex) {
-        if (msgLevel <= Logger.level) {
+        if (msgLevel <= level) {
             System.err.println(new Date().toString() + " [" + getLevelName(msgLevel) + "] ");
             ex.printStackTrace(System.err);
             System.err.flush();

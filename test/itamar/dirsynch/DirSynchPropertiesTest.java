@@ -1,6 +1,14 @@
 package itamar.dirsynch;
-import junit.framework.*;
-import itamar.util.Logger;
+import static itamar.dirsynch.DirSynchProperties.getLogFile;
+import static itamar.dirsynch.DirSynchProperties.getLogLevel;
+import static itamar.dirsynch.DirSynchProperties.getMainDir;
+import static itamar.dirsynch.DirSynchProperties.getSecDir;
+import static itamar.dirsynch.DirSynchProperties.init;
+import static itamar.dirsynch.DirSynchProperties.isHashEnabled;
+import static itamar.dirsynch.DirSynchProperties.isHideEquals;
+import static itamar.dirsynch.DirSynchProperties.isSubDirsInclude;
+import junit.framework.TestCase;
+import static itamar.util.Logger.LEVEL_DEBUG;
 import java.io.FileNotFoundException;
 
 /**
@@ -16,7 +24,7 @@ public class DirSynchPropertiesTest extends TestCase {
     protected void setUp() throws Exception {
         System.out.println("init");
         String propertiesFile = dirSynchDir + "\\test\\DirSynchTest.properties";
-        itamar.dirsynch.DirSynchProperties.init(propertiesFile);
+        init(propertiesFile);
     }
 
     protected void tearDown() throws Exception {
@@ -29,7 +37,7 @@ public class DirSynchPropertiesTest extends TestCase {
         System.out.println("init");
         String propertiesFile = dirSynchDir + "\\test\\DirSynchDOESNOTEXISTS.properties";
         try {
-            itamar.dirsynch.DirSynchProperties.init(propertiesFile);
+            init(propertiesFile);
             fail("Should have thrown FileNotFoundException.");
         } catch (FileNotFoundException e) {
             assertTrue("Test executed with success", true);
@@ -43,7 +51,7 @@ public class DirSynchPropertiesTest extends TestCase {
         System.out.println("isHashEnabled");
         
         boolean expResult = false;
-        boolean result = itamar.dirsynch.DirSynchProperties.isHashEnabled();
+        boolean result = isHashEnabled();
         assertEquals(expResult, result);
     }
 
@@ -51,7 +59,7 @@ public class DirSynchPropertiesTest extends TestCase {
      * Teste do método isHashOnlySmall, da classe itamar.dirsynch.DirSynchProperties.
      */
     /*public void testIsHashOnlySmall() {
-        System.out.println("isHashOnlySmall");
+        System.System.out.println("isHashOnlySmall");
         
         boolean expResult = true;
         boolean result = itamar.dirsynch.DirSynchProperties.isHashOnlySmall();
@@ -62,7 +70,7 @@ public class DirSynchPropertiesTest extends TestCase {
 //     * Teste do método getHashMaxSize, da classe itamar.dirsynch.DirSynchProperties.
 //     */
 //    public void testGetHashMaxSize() {
-//        System.out.println("getHashMaxSize");
+//        System.System.out.println("getHashMaxSize");
 //        
 //        int expResult = 0;
 //        int result = itamar.dirsynch.DirSynchProperties.getHashMaxSize();
@@ -75,8 +83,8 @@ public class DirSynchPropertiesTest extends TestCase {
     public void testGetLogLevel() {
         System.out.println("getLogLevel");
         
-        short expResult = Logger.LEVEL_DEBUG;
-        short result = itamar.dirsynch.DirSynchProperties.getLogLevel();
+        short expResult = LEVEL_DEBUG;
+        short result = getLogLevel();
         assertEquals(expResult, result);
     }
 
@@ -87,7 +95,7 @@ public class DirSynchPropertiesTest extends TestCase {
         System.out.println("getLogFile");
         
         String expResult = "DirSynchTest.log";
-        String result = itamar.dirsynch.DirSynchProperties.getLogFile();
+        String result = getLogFile();
         assertEquals(expResult, result);
     }
 
@@ -98,7 +106,7 @@ public class DirSynchPropertiesTest extends TestCase {
         System.out.println("getMainDir");
         
         String expResult = "[teste main dir]";
-        String result = itamar.dirsynch.DirSynchProperties.getMainDir();
+        String result = getMainDir();
         assertEquals(expResult, result);
     }
 
@@ -109,7 +117,7 @@ public class DirSynchPropertiesTest extends TestCase {
         System.out.println("getSecDir");
         
         String expResult = "[teste sec dir]";
-        String result = itamar.dirsynch.DirSynchProperties.getSecDir();
+        String result = getSecDir();
         assertEquals(expResult, result);
     }
 
@@ -120,7 +128,7 @@ public class DirSynchPropertiesTest extends TestCase {
         System.out.println("isSubDirsInclude");
         
         boolean expResult = true;
-        boolean result = itamar.dirsynch.DirSynchProperties.isSubDirsInclude();
+        boolean result = isSubDirsInclude();
         assertEquals(expResult, result);
     }
 
@@ -131,7 +139,7 @@ public class DirSynchPropertiesTest extends TestCase {
         System.out.println("isHideEquals");
         
         boolean expResult = true;
-        boolean result = itamar.dirsynch.DirSynchProperties.isHideEquals();
+        boolean result = isHideEquals();
         assertEquals(expResult, result);
     }
 
@@ -139,7 +147,7 @@ public class DirSynchPropertiesTest extends TestCase {
 //     * Teste do método getPropertiesAsString, da classe itamar.dirsynch.DirSynchProperties.
 //     */
 //    public void testGetPropertiesAsString() {
-//        System.out.println("getPropertiesAsString");
+//        System.System.out.println("getPropertiesAsString");
 //        
 //        String expResult = "";
 //        String result = itamar.dirsynch.DirSynchProperties.getPropertiesAsString();

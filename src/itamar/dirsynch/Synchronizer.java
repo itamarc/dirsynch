@@ -3,15 +3,22 @@
  */
 package itamar.dirsynch;
 
-import itamar.util.Logger;
-import java.awt.Cursor;
+import static itamar.util.Logger.LEVEL_ERROR;
+import static itamar.util.Logger.LEVEL_INFO;
+import static itamar.util.Logger.log;
+import static java.awt.Cursor.WAIT_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import static java.lang.Thread.currentThread;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Vector;
-import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingWorker;
 
@@ -32,13 +39,13 @@ public class Synchronizer implements PropertyChangeListener {
     }
 
     void execute() {
-	mainFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+	mainFrame.setCursor(getPredefinedCursor(WAIT_CURSOR));
 	synchTimesSameHash = mainFrame.isSynchTimesSameHash();
 	keepBackup = mainFrame.isKeepBackup();
-	Logger.log(Logger.LEVEL_INFO, "Starting synchronization process...");
+	log(LEVEL_INFO, "Starting synchronization process...");
 	mainFrame.setButtonsEnabled(false, false);
 	selFiles = mainFrame.getSelectedFiles();
-	Logger.log(Logger.LEVEL_INFO, "Synchronizing "+selFiles.size()+" files.");
+	log(LEVEL_INFO, "Synchronizing "+selFiles.size()+" files.");
 	progressMonitor = new ProgressMonitor(mainFrame,
 		"Synchronizing . . .",
 		"", 0, selFiles.size());
@@ -63,14 +70,14 @@ public class Synchronizer implements PropertyChangeListener {
 
 	private String finalMsg = "Synchronization completed!";
 	private String finalTitle = "Success";
-	private int finalMsgType = JOptionPane.INFORMATION_MESSAGE;
+	private int finalMsgType = INFORMATION_MESSAGE;
 	/*
 	 * Main task. Executed in background thread.
 	 */
 
 	@Override
 	protected Void doInBackground() {
-	    Thread.currentThread().setUncaughtExceptionHandler(
+	    currentThread().setUncaughtExceptionHandler(
 		    new DirSynchExceptionHandler());
 	    FilePair filePair = null;
 	    try {
@@ -85,40 +92,40 @@ public class Synchronizer implements PropertyChangeListener {
 		    setProgress((i+1)*(100/selFiles.size()));
 		}
 		if (isCancelled()) {
-		    Logger.log(Logger.LEVEL_INFO, "Synchronization process cancelled by user.");
+		    log(LEVEL_INFO, "Synchronization process cancelled by user.");
 		    finalMsg = "Synchronization CANCELED!";
 		    finalTitle = "Cancelled";
-		    finalMsgType = JOptionPane.WARNING_MESSAGE;
+		    finalMsgType = WARNING_MESSAGE;
 		} else {
-		    Logger.log(Logger.LEVEL_INFO, "Synchronization process finished successfully.");
+		    log(LEVEL_INFO, "Synchronization process finished successfully.");
 		    finalMsg = "Synchronization completed!";
 		    finalTitle = "Success";
-		    finalMsgType = JOptionPane.INFORMATION_MESSAGE;
+		    finalMsgType = INFORMATION_MESSAGE;
 		}
 	    } catch (IOException ex) {
 		finalMsg = "Failure in synchronization process!";
 		finalTitle = "Error";
-		finalMsgType = JOptionPane.ERROR_MESSAGE;
-		Logger.log(Logger.LEVEL_ERROR, "Error processing file: " + filePair);
-		Logger.log(Logger.LEVEL_ERROR, ex);
+		finalMsgType = ERROR_MESSAGE;
+		log(LEVEL_ERROR, "Error processing file: " + filePair);
+		log(LEVEL_ERROR, ex);
 	    } catch (NoSuchAlgorithmException ex) {
 		finalMsg = "Failure in synchronization process!";
 		finalTitle = "Weird Error";
-		finalMsgType = JOptionPane.ERROR_MESSAGE;
-		Logger.log(Logger.LEVEL_ERROR, "Weird Error processing file: " + filePair);
-		Logger.log(Logger.LEVEL_ERROR, ex);
+		finalMsgType = ERROR_MESSAGE;
+		log(LEVEL_ERROR, "Weird Error processing file: " + filePair);
+		log(LEVEL_ERROR, ex);
 	    } catch (RuntimeException ex) {
 		finalMsg = "Failure in synchronization process!";
 		finalTitle = "Unknown Error";
-		finalMsgType = JOptionPane.ERROR_MESSAGE;
-		Logger.log(Logger.LEVEL_ERROR, "Error processing file: " + filePair);
-		Logger.log(Logger.LEVEL_ERROR, ex);
+		finalMsgType = ERROR_MESSAGE;
+		log(LEVEL_ERROR, "Error processing file: " + filePair);
+		log(LEVEL_ERROR, ex);
 	    } catch (Throwable t) {
 		finalMsg = "Failure in synchronization process!";
 		finalTitle = "Unknown Throwable";
-		finalMsgType = JOptionPane.ERROR_MESSAGE;
-		Logger.log(Logger.LEVEL_ERROR, "Error processing file: " + filePair);
-		Logger.log(Logger.LEVEL_ERROR, t);
+		finalMsgType = ERROR_MESSAGE;
+		log(LEVEL_ERROR, "Error processing file: " + filePair);
+		log(LEVEL_ERROR, t);
 	    }
 	    return null;
 	}
@@ -130,7 +137,7 @@ public class Synchronizer implements PropertyChangeListener {
 	public void done() {
 	    progressMonitor.close();
 	    mainFrame.setCursor(null);
-	    JOptionPane.showMessageDialog(mainFrame, finalMsg, finalTitle,
+	    showMessageDialog(mainFrame, finalMsg, finalTitle,
 		    finalMsgType);
 	    mainFrame.load();
 	    mainFrame.setButtonsEnabled(true, true);
