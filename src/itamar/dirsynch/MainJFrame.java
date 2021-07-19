@@ -1075,7 +1075,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     }
     
     private static void showUsage() {
-        System.out.println("DirSynch "+version+"\n"+(char)184+" 2006-2008 Itamar Carvalho <itamarc at gmail.com>\n");
+        System.out.println("DirSynch "+version+"\n"+(char)184+" 2006-2021 Itamar Carvalho <itamarc at gmail.com>\n");
         System.out.println("java[w] -jar DirSynch.jar <Params>");
         System.out.println("Params:");
         System.out.println("  -main <main dir path>           Set the main dir.");
