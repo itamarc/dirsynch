@@ -23,7 +23,7 @@
 		<h1>DirSynch</h1>
 		<a href="https://itamarc.github.io/dirsynch/">Visit the DirSynch project page at GitHub<br>
 			<img src="main-screen-small-1.6.png" style="border: none;" alt="Main Screen"></a>
-                <h2><a name="howtouse">How to use</a></h2>
+                <h2><a id="howtouse">How to use</a></h2>
 		<h3>Tipical usage</h3>
 		<ol>
 			<li>Select the main directory.
@@ -147,7 +147,7 @@ Params:
                 regular expressions.  The syntax is the one from <code><a href="http://java.sun.com/javase/8/docs/api/java/util/regex/Pattern.html">java.util.regex.Pattern</a></code> class.</p>
                 <p>For example:
                 <dl>
-                    <dt><tt>|.+\.zip</tt></dt>
+                    <dt><pre>|.+\.zip</pre></dt>
                     <dd>This line matches all files with the extension ".zip" (case ignored), so those files won't be synchronized.</dd>
                 </dl>
 		<h4>Tips</h4>
@@ -157,7 +157,7 @@ Params:
                 <h3>Known issues</h3>
                 <p>If two files have the same times, but different sizes, they are marked as "BIG" (bigger) and "sml" (smaller).
             DirSynch ignores those files when synchronizing.</p>
-                <h2><a name="roadmap">Roadmap</a></h2>
+                <h2><a id="roadmap">Roadmap</a></h2>
 		<p>To see the future plans, please access our <a href="https://github.com/itamarc/dirsynch/issues" target="_blank">issue tracker page</a>.</p>
 		<p>History of versions:</p>
 <!--h3>v1.7 (__/__/2021):</h3>
@@ -193,10 +193,10 @@ Params:
 <h3>v1.5 (17/05/2008):</h3>
 <ul class="tasks">
     <li class="done"> Bug: if there is a path main:\aaa\bbb\ccc.doc and the dir sec:\aaa doesn't exists and there isn't a file main:\aaa\file.ext to be copied, the system crashes:<pre>
-java.io.FileNotFoundException: k:\modelos\LOC\Arrombamento\1315_06.odt (O sistema não pode encontrar o caminho especificado)
+java.io.FileNotFoundException: k:\modelos\LOC\Arrombamento\1315_06.odt (O sistema n&atilde;o pode encontrar o caminho especificado)
 	at java.io.FileOutputStream.open(Native Method)
-	at java.io.FileOutputStream.<init>(Unknown Source)
-	at java.io.FileOutputStream.<init>(Unknown Source)
+	at java.io.FileOutputStream.&lt;init>(Unknown Source)
+	at java.io.FileOutputStream.&lt;init>(Unknown Source)
 	at com.oktiva.util.FileUtil.copy(FileUtil.java:74)
 	at itamar.dirsynch.FilePair.copy(FilePair.java:381)
 	at itamar.dirsynch.FilePair.synchronize(FilePair.java:343)
