@@ -2,3 +2,4 @@
 DirSynch.log
 /dist/
 /target/
+*.odg#
