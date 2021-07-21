@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.itamarc</groupId>
     <artifactId>dirsynch</artifactId>
-    <version>1.6.1alpha</version>
+    <version>1.6.1</version>
     <packaging>jar</packaging>
     <name>DirSynch</name>
     <description>DirSynch is a tool to synchronize directory contents.</description>
@@ -25,7 +25,19 @@
         <testSourceDirectory>${basedir}/test</testSourceDirectory>
         <resources>
             <resource>
-                <directory>www</directory>
+                <directory>${basedir}/www</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}/src</directory>
+                <includes>
+                  <include>**/*.png</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${basedir}</directory>
+                <includes>
+                  <include>DirSynch.properties</include>
+                </includes>
             </resource>
         </resources>
         <plugins>

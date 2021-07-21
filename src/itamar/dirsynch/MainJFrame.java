@@ -66,7 +66,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private File secDir;
     private static String defaultMainDirPath = null;
     private static String defaultSecDirPath = null;
-    private static String version = "1.6.1alfa1";
+    private final static String VERSION = "1.6.1";
     private static boolean defaultKeep = false;
     private boolean firstLoad = true;
     private boolean firstInit = true;
@@ -78,7 +78,7 @@ public class MainJFrame extends javax.swing.JFrame {
     public MainJFrame() {
 	initDirSynchProperties();
 	initComponents();
-	setTitle("DirSynch " + version);
+	setTitle("DirSynch " + VERSION);
 	jTableFiles.getColumn("Sel").setMaxWidth(30);
 	jTableFiles.getColumn("Main").setMaxWidth(30);
 	jTableFiles.getColumn("Sec").setMaxWidth(30);
@@ -125,7 +125,7 @@ updateStatus();
 	}
 	Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile(), DirSynchProperties.isLogFileAppend());
 	if (firstInit) {
-	    log(LEVEL_INFO, "==========  DirSynch v" + version + " started.  ==========");
+	    log(LEVEL_INFO, "==========  DirSynch v" + VERSION + " started.  ==========");
 	}
 	log(LEVEL_INFO, "Properties initialized with file '" + propertiesFilePath + "'");
 	log(LEVEL_DEBUG, "Properties read: " + getPropertiesAsString());
@@ -1075,7 +1075,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     }
     
     private static void showUsage() {
-        System.out.println("DirSynch "+version+"\n"+(char)184+" 2006-2021 Itamar Carvalho <itamarc at gmail.com>\n");
+        System.out.println("DirSynch "+VERSION+"\n"+(char)184+" 2006-2021 Itamar Carvalho <itamarc at gmail.com>\n");
         System.out.println("java[w] -jar DirSynch.jar <Params>");
         System.out.println("Params:");
         System.out.println("  -main <main dir path>           Set the main dir.");
@@ -1231,7 +1231,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     
     private void showAbout() {
         showMessageDialog(this,
-                "DirSynch "+version+"\nhttps://itamarc.github.io/dirsynch/\n"+
+                "DirSynch "+VERSION+"\nhttps://itamarc.github.io/dirsynch/\n"+
                         "\u00A9 2007 Itamar Carvalho <itamarc+dirsynch AT gmail\u00B7com>\n\n"+
                         "This software is released under the GNU General Public License version 3.\n"+
                         "https://www.gnu.org/licenses/gpl-3.0.txt",
