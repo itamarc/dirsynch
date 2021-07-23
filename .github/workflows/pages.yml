@@ -42,7 +42,7 @@ jobs:
         # These files will be copied to the output folder without any change.
         content_to_copy: 'www'
         # The log level, according to the ones defined in java.util.logging.Level. (not required, default 'WARNING')
-        log_level: 'FINE'
+        log_level: 'FINER'
       env:
         # Needed to publish the pages
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
