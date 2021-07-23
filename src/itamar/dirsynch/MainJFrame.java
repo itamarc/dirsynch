@@ -1232,7 +1232,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     private void showAbout() {
         showMessageDialog(this,
                 "DirSynch "+VERSION+"\nhttps://itamarc.github.io/dirsynch/\n"+
-                        "\u00A9 2007 Itamar Carvalho <itamarc+dirsynch AT gmail\u00B7com>\n\n"+
+                        "\u00A9 2007-2021 Itamar Carvalho <itamarc+dirsynch AT gmail\u00B7com>\n\n"+
                         "This software is released under the GNU General Public License version 3.\n"+
                         "https://www.gnu.org/licenses/gpl-3.0.txt",
                 "About DirSynch",

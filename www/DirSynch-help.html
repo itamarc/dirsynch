@@ -35,7 +35,7 @@
 		</ol>
 		<h3>System requirements</h3>
 		<ul>
-			<li>Java SE 8</li>
+                    <li>Java SE 8</li>
 		</ul>
                 <h3>Needed files</h3>
                 <ul>
@@ -52,7 +52,7 @@
                 <h3>Optional files</h3>
                 <ul>
                     <li>DirSynch.properties</li>
-	            </ul>
+	        </ul>
 		<h3>Command line parameters</h3>
 		I use this to create specific icons on my desktop, for each dir I usually synchronize.
 <pre>java[w] -jar DirSynch.jar [Params]
@@ -157,19 +157,38 @@ Params:
                 <h3>Known issues</h3>
                 <p>If two files have the same times, but different sizes, they are marked as "BIG" (bigger) and "sml" (smaller).
             DirSynch ignores those files when synchronizing.</p>
+                <h2>License</h2>
+                <img src="gplv3-with-text-136x68.png" alt="GPLv3 Free Software" style="float: left;"/>
+                <p>This program is free software: you can redistribute it and/or modify
+                it under the terms of the GNU General Public License as published by
+                the Free Software Foundation, either version 3 of the License, or
+                (at your option) any later version.
+
+                <p>This program is distributed in the hope that it will be useful,
+                but WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                GNU General Public License for more details.
+
+                <p>A copy of the GNU General Public License is distributed in this
+                package as file named <a href="../LICENSE">LICENSE</a>. If you
+                can't find this file, you can access the full license text in
+                <a href="http://www.gnu.org/licenses/gpl-3.0.txt">http://www.gnu.org/licenses/gpl-3.0.txt</a>
                 <h2><a id="roadmap">Roadmap</a></h2>
 		<p>To see the future plans, please access our <a href="https://github.com/itamarc/dirsynch/issues" target="_blank">issue tracker page</a>.</p>
 		<p>History of versions:</p>
 <!--h3>v1.7 (__/__/2021):</h3>
 <ul class="tasks">
 	<li class='todo'><a href='https://github.com/itamarc/dirsynch/issues/1'>Issue #1 - _onlysynch</a></li>
-	<li class='todo'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=3'>Issue #3 - Wildcard characters (*, ?) in _onlysynch</a></li>
+	<li class='todo'><a href='https://github.com/itamarc/dirsynch/issues/2'>Issue #2 - Wildcard characters (*, ?) in _onlysynch</a></li>
 	<li class='done'>Issue #__ - Update help file to v1.7</li>
 </ul-->
-<h3>v1.6.1 (__/__/2021):</h3>
+<h3>v1.6.1 (23/07/2021):</h3>
 <ul class="tasks">
-	<li class='done'>Bug: <a href='https://github.com/itamarc/dirsynch/issues/23'>Issue #23 - Change docs to point to GitHub</a></li>
-	<li class='done'>Bug: <a href='https://github.com/itamarc/dirsynch/issues/24'>Issue #24 - please indicate the license in the program itself</a></li>
+    <li class='done'>Bug: <a href='https://github.com/itamarc/dirsynch/issues/23'>Issue #23 - Change docs to point to GitHub</a></li>
+    <li class='done'>Bug: <a href='https://github.com/itamarc/dirsynch/issues/24'>Issue #24 - please indicate the license in the program itself</a></li>
+    <li class='done'><a href='https://github.com/itamarc/dirsynch/issues/26'>Issue #26 - Migrate building process to Maven</a></li>
+    <li class='done'>Project migrated to GitHub.</li>
+    <li class='done'>Internal code refactoring to use Java SE 8.</li>
 </ul>
 <h3>v1.6 (10/09/2009):</h3>
 <ul class="tasks">

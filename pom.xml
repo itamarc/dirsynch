@@ -25,9 +25,6 @@
         <testSourceDirectory>${basedir}/test</testSourceDirectory>
         <resources>
             <resource>
-                <directory>${basedir}/www</directory>
-            </resource>
-            <resource>
                 <directory>${basedir}/src</directory>
                 <includes>
                   <include>**/*.png</include>
@@ -41,6 +38,24 @@
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <finalName>DirSynch</finalName>
+                    <archive>
+                        <manifest>
+                            <mainClass>itamar.dirsynch.MainJFrame</mainClass>
+                        </manifest>
+                    </archive>
+                    <excludes>
+                        <exclude>www</exclude>
+                        <exclude>doc</exclude>
+                        <exclude>DirSynch.properties</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.3.0</version>

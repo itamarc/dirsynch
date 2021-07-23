@@ -9,7 +9,7 @@
         <fileSet>
             <directory>target</directory>
             <includes>
-                <include>dirsynch-*.jar</include>
+                <include>DirSynch.jar</include>
             </includes>
             <outputDirectory>/</outputDirectory>
         </fileSet>
@@ -17,10 +17,8 @@
             <directory>www</directory>
             <includes>
                 <include>DirSynch-help.html</include>
-                <include>x.gif</include>
-                <include>v.gif</include>
-                <include>main-screen-small-1.6.png</include>
-                <include>toolbar-1.6.png</include>
+                <include>*.gif</include>
+                <include>*.png</include>
             </includes>
             <outputDirectory>/</outputDirectory>
         </fileSet>
