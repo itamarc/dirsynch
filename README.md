@@ -11,5 +11,4 @@ the files before overwriting them.
 
 You can see instructions of use and the history of the project in the [help file](www/DirSynch-help.html).
 
-This software was originally hosted in [SourceForge](https://sourceforge.net/projects/dirsynch/).
-For now, you can download the current release from there. The next releases will be published in GitHub.
+This software was hosted in [SourceForge](https://sourceforge.net/projects/dirsynch/).
