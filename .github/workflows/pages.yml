@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Copy To Branches Action
-        uses: planetoftheweb/copy-to-branches@v1
+        uses: itamarc/copy-to-branches@v1test
         env:
           # The branch where the files will be copied from
           key: master
