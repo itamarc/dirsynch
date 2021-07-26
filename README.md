@@ -15,6 +15,6 @@ different). The program can create a backup of the files before overwriting them
 
 ![screenshot v.1.6](www/main-screen-1.6.png)
 
-You can see instructions of use and the history of the project in the [help file](www/DirSynch-help.html).
+You can see instructions of use and the history of the project in the [help file](https://itamarc.github.io/dirsynch/www/DirSynch-help.html).
 
 This software was hosted in [SourceForge](https://sourceforge.net/projects/dirsynch/).
