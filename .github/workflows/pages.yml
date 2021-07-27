@@ -1,4 +1,4 @@
-name: Page generation from templates
+name: Automatic GitHub Pages generation
 
 on:
   # Trigger on page_build, as well as release created events
@@ -15,14 +15,14 @@ jobs:
         with:
           fetch-depth: 1
       - name: Copy To Branches Action
-        uses: itamarc/copy-to-branches@v1test
+        uses: planetoftheweb/copy-to-branches@v1.1
         env:
           # The branch where the files will be copied from
-          key: master
+          key: 'master'
           # The destination branch
-          branches: gh-pages
+          branches: 'gh-pages'
           # The files that will be copied
-          files: README.md www/DirSynch-help.html
+          files: 'README.md www/DirSynch-help.html'
   deploy-pages:
     runs-on: ubuntu-latest
     steps:
