@@ -31,7 +31,7 @@ public class DirComparator implements PropertyChangeListener {
     private Map<String, File> secDirMap;
     private File mainDir = null;
     private File secDir = null;
-    private SynchMapChecker noSynchMap = null;
+    private SynchMapChecker synchMapChecker = null;
     private ProgressMonitor progressMonitor = null;
 
     public DirComparator(MainJFrame mainFrame) {
@@ -203,9 +203,16 @@ public class DirComparator implements PropertyChangeListener {
 		new File(System.getProperty("user.dir") + File.separator + ".nosynch"),
 		new File(System.getProperty("user.dir") + File.separator + "_nosynch")
 	    };
+	    File[] onlySynchFiles = {
+		new File(mainDir + File.separator + ".onlysynch"),
+		new File(mainDir + File.separator + "_onlysynch"),
+		new File(secDir + File.separator + ".onlysynch"),
+		new File(secDir + File.separator + "_onlysynch"),
+		new File(System.getProperty("user.dir") + File.separator + ".onlysynch"),
+		new File(System.getProperty("user.dir") + File.separator + "_onlysynch")
+	    };
 	    Logger.log(Logger.LEVEL_DEBUG, "user.dir: "+System.getProperty("user.dir"));
-	    noSynchMap = new SynchMapChecker();
-	    noSynchMap.init(noSynchFiles);
+	    synchMapChecker = new SynchMapChecker(noSynchFiles, onlySynchFiles);
 	}
 
 	/**
@@ -219,24 +226,28 @@ public class DirComparator implements PropertyChangeListener {
 		throws IOException {
 	    Logger.log(Logger.LEVEL_DEBUG, "buildMap: " + dir.getPath() + " - " + rootPathSize);
 	    File[] dirFiles = dir.listFiles();
-	    Logger.log(Logger.LEVEL_DEBUG, "buildMap: " + dirFiles.length);
-	    for (int i = 0; i < dirFiles.length; i++) {
-		File file = dirFiles[i];
-		Logger.log(Logger.LEVEL_DEBUG, "buildMap dirFiles[" + i + "]: " + file.getPath());
-		if (!noSynchMap.match(file)) {
-		    Logger.log(Logger.LEVEL_DEBUG, "No match, verifying if it's a dir or a file...");
-		    if (file.isDirectory()) {
-			Logger.log(Logger.LEVEL_DEBUG, "It's a dir, checking if I'll follow it");
-			if (mainFrame.isIncludeSubdirs()) {
-			    Logger.log(Logger.LEVEL_DEBUG, "Going to next level with file: " + file.getPath());
-			    buildMap(file, dirMap, rootPathSize);
-			}
-		    } else {
-			Logger.log(Logger.LEVEL_DEBUG, "It's a file, putting in the map.");
-			dirMap.put(file.getPath().substring(rootPathSize), file);
-		    }
-		}
-	    }
+            if (dirFiles == null) {
+                Logger.log(Logger.LEVEL_WARNING, "(DirComparator.buildMap) Unable to read dir: " + dir.getPath());
+            } else {
+                Logger.log(Logger.LEVEL_DEBUG, "buildMap: " + dirFiles.length);
+                for (int i = 0; i < dirFiles.length; i++) {
+                    File file = dirFiles[i];
+                    Logger.log(Logger.LEVEL_DEBUG, "buildMap dirFiles[" + i + "]: " + file.getPath());
+                    if (!synchMapChecker.isBlocked(file, rootPathSize)) {
+                        Logger.log(Logger.LEVEL_DEBUG, "No match, verifying if it's a dir or a file...");
+                        if (file.isDirectory()) {
+                            Logger.log(Logger.LEVEL_DEBUG, "It's a dir, checking if I'll follow it");
+                            if (mainFrame.isIncludeSubdirs()) {
+                                Logger.log(Logger.LEVEL_DEBUG, "Going to next level with file: " + file.getPath());
+                                buildMap(file, dirMap, rootPathSize);
+                            }
+                        } else {
+                            Logger.log(Logger.LEVEL_DEBUG, "It's a file, putting in the map.");
+                            dirMap.put(file.getPath().substring(rootPathSize), file);
+                        }
+                    }
+                }
+            }
 	}
     }
 }

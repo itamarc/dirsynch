@@ -10,126 +10,134 @@ import itamar.util.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Vector;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-/* CURRENT:
- * synchMap = {
- *		".nosynch" => 1,
- *		"Thumbs.db" => 1
- * }
- * wildCards = [
- *		/.*~/,
- *		/.*\.bak/
- * ]
- */
-/* NEW:
- * synchMapFileName = {
- *		".nosynch" => "CS",
- *		"Thumbs.db" => "CS"
- * }
- * synchMapDirName = {
- *		"temp" => "CS",
- *		"Tmp" => "CS"
- * }
- * synchMapFilePath = {
- *		"temp/build/img/logo.jpg" => "CI",
- *		"img/Thumbs.db" => "CS"
- * }
- * synchMapDirPath = {
- *		"temp/build/" => "CS",
- *		"img/" => "CS"
- * }
- * wildCardsFileName = {
- *		/ .*~ / => "CS",
- *		/ .*\.bak / => "CS"
- * }
- * wildCardsDirName = {
- *		/ New folder.* / => "CS",
- *		/ .*temp.* / => "CI"
- * }
- * wildCardsFilePath = {
- *		/ src\/.*~ / => "CS",
- *		/ build\/.*\.class / => "CS"
- * }
- * wildCardsDirPath = {
- *		/ .*\/tmp\/.* / => "CS"
- * }
- */
 /*
- * Optional tags...
-
+ * The value of the map is a bitmask of the options:
 ...for type of object:
-<F> Apply to files only
-<D> Apply to dirs only
-<FD> Apply to files and dirs (default)
-
+ * Mask: 11 (2^0 + 2^1)
+ * 01 <F> Apply to files only
+ * 10 <D> Apply to dirs only
+ * 00 <FD> Apply to files and dirs (default)
 ...for what to match:
-<N> Match only the Name (default)
-<P> Match the name including the relative Path
-
+ * Mask: 100 (2^2)
+ * 0 <N> Match only the Name (default)
+ * 1 <P> Match the name including the relative Path
 ...for how to match:
-<CI> Case insensitive
-<CS> Case sensitive (default)
-
-</> To be substitued by the "System.fileSeparator"
+ * Mask: 1000 (2^3)
+ * 0 <CI> Case insensitive (default)
+ * 1 <CS> Case sensitive
+ *
+ * </> To be substitued by the "System.fileSeparator"
  */
 /**
  * <p>A class to proccess .nosynch and .onlysynch files.
  * <p>This utility class reads the files, parses it and for a filename given, it
- * checks if it maps with the loaded data.
+ * checks if it matches with the loaded data.
  * @author Itamar Carvalho
  */
 public class SynchMapChecker {
+	private static int OBJECT_TYPE_MAP = 3;		// binary 11 (2^0 + 2^1)
+	private static int FILES_DIRS_OPTION = 0;
+	private static int FILES_ONLY_OPTION = 1;
+	private static int DIRS_ONLY_OPTION = 2;
+	private static int PARTIAL_MATCH_MAP = 4;	// binary 100 (2^2)
+	private static int FILE_NAME_OPTION = 0;
+	private static int RELATIVE_PATH_OPTION = 4;
+	private static int CASE_SENSITIVITY_MAP = 8;	// binary 1000 (2^3)
+	private static int CASE_INSENSITIVE_OPTION = 0;
+	private static int CASE_SENSITIVE_OPTION = 8;
 	/**
-	 * A map with the file names loaded from the config files.
+	 * A map with the file names loaded from the nosynch files.
 	 */
-    private Map<String, String> synchMap = null;
+	private Map<String, Integer> noSynchMap = null;
+	/**
+	 * A map with the file names loaded from the onlysynch files.
+	 */
+	private Map<String, Integer> onlySynchMap = null;
 	/**
 	 * A list of patterns that must be checked against the given filenames when
-	 * checking if they match, loaded from the config files.
+	 * checking if they match, loaded from the nosynch files.
 	 */
-    private Vector<Pattern> wildCards = null;
+	private Map<Pattern, Integer> noSynchWildCards = null;
+	/**
+	 * A list of patterns that must be checked against the given filenames when
+	 * checking if they match, loaded from the onlysynch files.
+	 */
+	private Map<Pattern, Integer> onlySynchWildCards = null;
     
-    /** Creates a new instance of SynchMapChecker */
-    public SynchMapChecker() {
+	/** Creates a new instance of SynchMapChecker
+	 * <p>Read a set of "synchFiles" (.nosynch or .onlysynch) and keep its data in
+	 * memory for future use.
+	 * <p>If one of the File objects point to a dir or if the file can't be read,
+	 * this method just ignore this silently, to allow that all possible paths
+	 * can be passed to it.
+	 * @param noSynchFiles An array of File objects.
+	 * @param onlySynchFiles An array of File objects.
+	 */
+    public SynchMapChecker(File[] noSynchFiles, File[] onlySynchFiles) {
+	    init(noSynchFiles, onlySynchFiles);
     }
     
-    private Map<String, String> getSynchMap() {
-        if (synchMap == null) {
-            synchMap = new HashMap<String, String>();
+    private Map<String, Integer> getNoSynchMap() {
+        if (noSynchMap == null) {
+            noSynchMap = new HashMap<String, Integer>();
         }
-        return synchMap;
+        return noSynchMap;
+    }
+
+    private Map<String, Integer> getOnlySynchMap() {
+        if (onlySynchMap == null) {
+            onlySynchMap = new HashMap<String, Integer>();
+        }
+        return onlySynchMap;
     }
     
-    private Vector<Pattern> getWildCards() {
-        if (wildCards == null) {
-            wildCards = new Vector<Pattern>();
+    private Map<Pattern, Integer> getWildCardsNoSynch() {
+        if (noSynchWildCards == null) {
+            noSynchWildCards = new HashMap<Pattern, Integer>();
         }
-        return wildCards;
+        return noSynchWildCards;
+    }
+
+    private Map<Pattern, Integer> getWildCardsOnlySynch() {
+        if (onlySynchWildCards == null) {
+            onlySynchWildCards = new HashMap<Pattern, Integer>();
+        }
+        return onlySynchWildCards;
     }
 
 	/**
-	 * Loads a "synchFile" (.nosynch or .onlysynch) and put the data in the map
-	 * and the list of patterns.
+	 * Loads a "synchFile" (.nosynch or .onlysynch) and put the data in the maps.
 	 * @param synchFile The file to be read.
 	 */
-    private void loadSynchFile(File synchFile) {
-        Map<String, String> map = getSynchMap();
-        wildCards = getWildCards();
+    private void loadSynchFile(File synchFile, Map<String, Integer> map,
+	    Map<Pattern, Integer> wildCards) {
         try {
+		Logger.log(Logger.LEVEL_DEBUG, "Loading {No,Only}Synch file: "+synchFile.getCanonicalPath());
             String[] lines = FileUtil.readFileAsArray(synchFile);
             for (int i = 0; i < lines.length; i++) {
                 while (lines[i].endsWith("\r") || lines[i].endsWith("\n")) {
                     lines[i] = lines[i].substring(0, lines[i].length()-1);
                 }
                 if (lines[i] != null && !"".equals(lines[i])) {
-					// TODO Implement optional tags (Issue #2)
-                    if (lines[i].startsWith("|")) {
-                        wildCards.add(Pattern.compile(lines[i].substring(1), Pattern.CASE_INSENSITIVE));
-                    } else {
-                        map.put(lines[i], "1");
-                    }
+			lines[i] = lines[i].replaceAll("</>", Matcher.quoteReplacement("\\"+File.separator));
+			int options = parseOptionalTags(lines, i);
+			if (lines[i].startsWith("|")) {
+				wildCards.put(((options & CASE_SENSITIVITY_MAP) == CASE_INSENSITIVE_OPTION ?
+					Pattern.compile(lines[i].substring(1), Pattern.CASE_INSENSITIVE) :
+					Pattern.compile(lines[i].substring(1))),
+					Integer.valueOf(options));
+			} else {
+				map.put(lines[i], Integer.valueOf(options));
+			}
+			Logger.log(Logger.LEVEL_DEBUG,
+				"options="+Integer.toBinaryString(options)+" & CS_MAP="+
+				Integer.toBinaryString(options & CASE_SENSITIVITY_MAP)+
+				" & FD_MAP="+Integer.toBinaryString(options & OBJECT_TYPE_MAP)+
+				" & PM_MAP"+Integer.toBinaryString(options & PARTIAL_MATCH_MAP));
                 }
             }
             Logger.log(Logger.LEVEL_INFO, "{No,Only}Synch file loaded: "+synchFile.getCanonicalPath());
@@ -146,36 +154,139 @@ public class SynchMapChecker {
 	 * <p>If one of the File objects point to a dir or if the file can't be read,
 	 * this method just ignore this silently, to allow that all possible paths
 	 * can be passed to it.
-	 * @param synchFiles An array of File objects.
+	 * @param noSynchFiles An array of File objects.
+	 * @param onlySynchFiles An array of File objects.
 	 */
-    public void init(File[] synchFiles) {
-        for (int i = 0; i < synchFiles.length; i++) {
-            if (synchFiles[i].isFile() && synchFiles[i].canRead()) {
-                loadSynchFile(synchFiles[i]);
-            }
-        }
-    }
+	private void init(File[] noSynchFiles, File[] onlySynchFiles) {
+		for (int i = 0; i < noSynchFiles.length; i++) {
+			if (noSynchFiles[i].isFile() && noSynchFiles[i].canRead()) {
+				loadSynchFile(noSynchFiles[i], getNoSynchMap(), getWildCardsNoSynch());
+			}
+		}
+		for (int i = 0; i < onlySynchFiles.length; i++) {
+			if (onlySynchFiles[i].isFile() && onlySynchFiles[i].canRead()) {
+				loadSynchFile(onlySynchFiles[i], getOnlySynchMap(), getWildCardsOnlySynch());
+			}
+		}
+	}
 
 	/**
-	 * Check if a given file matches with the parameters loaded from the
-	 * "synchFiles" (.nosynch or .onlysynch).
+	 * Check if a given file is blocked according to the rules of .nosynch
+	 * or .onlysynch files.
 	 * @param file A file to check.
-	 * @return True if the file matches with some rule.
+	 * @param rootPathSize The size of the root path.
+	 * @return True if the file is blocked by some rule.
 	 */
-    public boolean match(File file) {
+	public boolean isBlocked(File file, int rootPathSize) {
+		boolean blocked = false;
+		// By default, there is no onlysynch restriction
+		boolean only = true;
+		// If there are any onlysynch restriction
+		if (!getOnlySynchMap().isEmpty() || !getWildCardsOnlySynch().isEmpty()) {
+			// Check if the file is on the onlysynch list
+			only = match(file, rootPathSize, getOnlySynchMap(), getWildCardsOnlySynch());
+			Logger.log(Logger.LEVEL_DEBUG, "Checked onlysynch rules (" + file.getName() + "): " + only);
+		}
+		// If there is no onlysynch restriction, test for nosynch ones
+		if (only) {
+			blocked = match(file, rootPathSize, getNoSynchMap(), getWildCardsNoSynch());
+		} else {
+			blocked = true;
+			Logger.log(Logger.LEVEL_DEBUG, "File blocked by onlysynch rule.");
+		}
+		Logger.log(Logger.LEVEL_DEBUG, "Exiting SynchMapChecker.isBlocked: " + blocked);
+		return blocked;
+	}
+
+	private boolean match(File file, int rootPathSize,
+		Map<String, Integer> map, Map<Pattern, Integer> wildCardsMap) {
 		String fileName = file.getName();
-        Logger.log(Logger.LEVEL_DEBUG, "SynchMapChecker.match: "+fileName);
-        boolean match = getSynchMap().containsKey(fileName);
-        if (!match) {
-            for (int i = 0; i < getWildCards().size(); i++) {
-                if (((Pattern)getWildCards().get(i)).matcher(fileName).matches()){
-                    match = true;
-                    Logger.log(Logger.LEVEL_DEBUG, "Match ["+getWildCards().get(i).pattern()+"]: "+fileName);
-                    break;
-                }
-            }
-        }
-        Logger.log(Logger.LEVEL_DEBUG, "Exiting SynchMapChecker.match: "+match);
-        return match;
-    }
+		String relativePath = file.getPath().substring(rootPathSize);
+		Logger.log(Logger.LEVEL_DEBUG, "SynchMapChecker.match: " + fileName);
+		int options = 0;
+		boolean match = false;
+		if (map.containsKey(fileName)) {
+			options = map.get(fileName).intValue();
+			if (((options & OBJECT_TYPE_MAP) == FILES_DIRS_OPTION) ||
+				(((options & OBJECT_TYPE_MAP) == FILES_ONLY_OPTION) && file.isFile()) ||
+				(((options & OBJECT_TYPE_MAP) == DIRS_ONLY_OPTION) && file.isDirectory())) {
+				match = ((options & PARTIAL_MATCH_MAP) == FILE_NAME_OPTION);
+			}
+		}
+		if (map.containsKey(relativePath)) {
+			options = map.get(relativePath).intValue();
+			if (((options & OBJECT_TYPE_MAP) == FILES_DIRS_OPTION) ||
+				(((options & OBJECT_TYPE_MAP) == FILES_ONLY_OPTION) && file.isFile()) ||
+				(((options & OBJECT_TYPE_MAP) == DIRS_ONLY_OPTION) && file.isDirectory())) {
+				match = ((options & PARTIAL_MATCH_MAP) == RELATIVE_PATH_OPTION);
+			}
+		}
+		if (!match) {
+			for (Iterator<Pattern> iter = wildCardsMap.keySet().iterator(); iter.hasNext();) {
+				Pattern pattern = iter.next();
+				options = wildCardsMap.get(pattern).intValue();
+				if (((options & OBJECT_TYPE_MAP) == FILES_DIRS_OPTION) ||
+					(((options & OBJECT_TYPE_MAP) == FILES_ONLY_OPTION) && file.isFile()) ||
+					(((options & OBJECT_TYPE_MAP) == DIRS_ONLY_OPTION) && file.isDirectory())) {
+					String nameOrPath = (((options & PARTIAL_MATCH_MAP) == RELATIVE_PATH_OPTION) ? relativePath : fileName);
+					if (pattern.matcher(nameOrPath).matches()) {
+						match = true;
+						Logger.log(Logger.LEVEL_DEBUG, "Match [" + pattern + "]: " + nameOrPath);
+						break;
+					}
+				}
+			}
+		}
+		return match;
+	}
+
+	/**
+	 * Parse the optional tags...<br>
+	 * <br>
+	 * ...for type of object:<br>
+	 * &lt;F&gt; Apply to files only<br>
+	 * &lt;D&gt; Apply to dirs only<br>
+	 * &lt;FD&gt; Apply to files and dirs (default)<br>
+	 * <br>
+	 * ...for what to match:<br>
+	 * &lt;N&gt; Match only the Name (default)<br>
+	 * &lt;P&gt; Match the name including the relative Path<br>
+	 * <br>
+	 * ...for how to match:<br>
+	 * &lt;CI&gt; Case insensitive<br>
+	 * &lt;CS&gt; Case sensitive (default)<br>
+	 * <br>
+	 * &lt;/&gt; To be substitued by the "System.fileSeparator"<br>
+	 */
+	private int parseOptionalTags(String[] lines, int i) {
+		int options = 0;
+		Logger.log(Logger.LEVEL_DEBUG, "Parsing options from line: "+lines[i]);
+		while (lines[i].startsWith("<")) {
+			if (lines[i].startsWith("<F>")) {
+				options += FILES_ONLY_OPTION;
+				lines[i] = lines[i].substring(3);
+			} else if (lines[i].startsWith("<D>")) {
+				options += DIRS_ONLY_OPTION;
+				lines[i] = lines[i].substring(3);
+			} else if (lines[i].startsWith("<FD>")) {
+				options += FILES_DIRS_OPTION;
+				lines[i] = lines[i].substring(4);
+			} else if (lines[i].startsWith("<N>")) {
+				options += FILE_NAME_OPTION;
+				lines[i] = lines[i].substring(3);
+			} else if (lines[i].startsWith("<P>")) {
+				options += RELATIVE_PATH_OPTION;
+				lines[i] = lines[i].substring(3);
+			} else if (lines[i].startsWith("<CI>")) {
+				options += CASE_INSENSITIVE_OPTION;
+				lines[i] = lines[i].substring(4);
+			} else if (lines[i].startsWith("<CS>")) {
+				options += CASE_SENSITIVE_OPTION;
+				lines[i] = lines[i].substring(4);
+			}
+		}
+		Logger.log(Logger.LEVEL_DEBUG, "Parsed line: "+lines[i]);
+		lines[i].replaceAll("</>", File.pathSeparator);
+		return options;
+	}
 }
