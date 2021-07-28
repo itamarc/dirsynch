@@ -21,9 +21,10 @@
 	</head>
 	<body>
 		<h1>DirSynch</h1>
-		<a href="http://dirsynch.dev.java.net">Visit the DirSynch project page at Java.Net<br>
+                <p>A directory sinchronization tool.</p>
+		<a href="https://itamarc.github.io/dirsynch/">Visit the DirSynch project page at GitHub.<br>
 			<img src="main-screen-small-1.6.png" style="border: none;" alt="Main Screen"></a>
-                <h2><a name="howtouse">How to use</a></h2>
+                <h2><a id="howtouse">How to use</a></h2>
 		<h3>Tipical usage</h3>
 		<ol>
 			<li>Select the main directory.
@@ -35,7 +36,7 @@
 		</ol>
 		<h3>System requirements</h3>
 		<ul>
-			<li>Java SE 6</li>
+                    <li>Java SE 8</li>
 		</ul>
                 <h3>Needed files</h3>
                 <ul>
@@ -52,7 +53,7 @@
                 <h3>Optional files</h3>
                 <ul>
                     <li>DirSynch.properties</li>
-	            </ul>
+	        </ul>
 		<h3>Command line parameters</h3>
 		I use this to create specific icons on my desktop, for each dir I usually synchronize.
 <pre>java[w] -jar DirSynch.jar [Params]
@@ -144,10 +145,10 @@ Params:
                 <p>The nosynch files are read every time the list is loaded, so you can change it "on the fly", without closing the program.
                 <h4>Wildcards</h4>
                 <p>The lines in the .nosynch file that starts with the character "|" (pipe) are processed as 
-                regular expressions.  The syntax is the one from <code><a href="http://java.sun.com/javase/6/docs/api/java/util/regex/Pattern.html">java.util.regex.Pattern</a></code> class.</p>
+                regular expressions.  The syntax is the one from <code><a href="http://java.sun.com/javase/8/docs/api/java/util/regex/Pattern.html">java.util.regex.Pattern</a></code> class.</p>
                 <p>For example:
                 <dl>
-                    <dt><tt>|.+\.zip</tt></dt>
+                    <dt><pre>|.+\.zip</pre></dt>
                     <dd>This line matches all files with the extension ".zip" (case ignored), so those files won't be synchronized.</dd>
                 </dl>
 		<h4>Tips</h4>
@@ -157,22 +158,47 @@ Params:
                 <h3>Known issues</h3>
                 <p>If two files have the same times, but different sizes, they are marked as "BIG" (bigger) and "sml" (smaller).
             DirSynch ignores those files when synchronizing.</p>
-                <h2><a name="roadmap">Roadmap</a></h2>
-		<p>To see the future plans, please access our <a href="http://dirsynch.dev.java.net/servlets/ProjectIssues" target="_blank">issue tracker page</a>.</p>
+                <h2>License</h2>
+                <img src="gplv3-with-text-136x68.png" alt="GPLv3 Free Software" style="float: left;"/>
+                <p>This program is free software: you can redistribute it and/or modify
+                it under the terms of the GNU General Public License as published by
+                the Free Software Foundation, either version 3 of the License, or
+                (at your option) any later version.
+
+                <p>This program is distributed in the hope that it will be useful,
+                but WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                GNU General Public License for more details.
+
+                <p>A copy of the GNU General Public License is distributed in this
+                package as file named <a href="../LICENSE">LICENSE</a>. If you
+                can't find this file, you can access the full license text in
+                <a href="http://www.gnu.org/licenses/gpl-3.0.txt">http://www.gnu.org/licenses/gpl-3.0.txt</a>
+                <h2><a id="roadmap">Roadmap</a></h2>
+		<p>To see the future plans, please access our <a href="https://github.com/itamarc/dirsynch/issues" target="_blank">issue tracker page</a>.</p>
 		<p>History of versions:</p>
-<!--h3>v1.7 (__/__/2009):</h3>
+<!--h3>v1.7 (__/__/2021):</h3>
 <ul class="tasks">
-	<li class='todo'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=2'>Issue #2 - _onlysynch</a></li>
-	<li class='todo'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=3'>Issue #3 - Wildcard characters (*, ?) in _onlysynch</a></li>
+	<li class='todo'><a href='https://github.com/itamarc/dirsynch/issues/1'>Issue #1 - _onlysynch</a></li>
+	<li class='todo'><a href='https://github.com/itamarc/dirsynch/issues/2'>Issue #2 - Wildcard characters (*, ?) in _onlysynch</a></li>
+	<li class='done'>Issue #__ - Update help file to v1.7</li>
 </ul-->
+<h3>v1.6.1 (23/07/2021):</h3>
+<ul class="tasks">
+    <li class='done'>Bug: <a href='https://github.com/itamarc/dirsynch/issues/23'>Issue #23 - Change docs to point to GitHub</a></li>
+    <li class='done'>Bug: <a href='https://github.com/itamarc/dirsynch/issues/24'>Issue #24 - please indicate the license in the program itself</a></li>
+    <li class='done'><a href='https://github.com/itamarc/dirsynch/issues/26'>Issue #26 - Migrate building process to Maven</a></li>
+    <li class='done'>Project migrated to GitHub.</li>
+    <li class='done'>Internal code refactoring to use Java SE 8.</li>
+</ul>
 <h3>v1.6 (10/09/2009):</h3>
 <ul class="tasks">
-	<li class='done'>Bug: <a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=1'>Issue #1 - When a file is open, the synch fails with no error msg</a></li>
-	<li class='done'>Bug: <a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=18'>Issue #18 - Save options dialog doesn't show dirs</a></li>
-	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=4'>Issue #4 - Interface for the options that are only in the .properties file</a></li>
-	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=13'>Issue #13 - Toolbar with common tools</a></li>
-	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=17'>Issue #17 - Change plain threads to SwingWorker</a></li>
-	<li class='done'><a href='https://dirsynch.dev.java.net/issues/show_bug.cgi?id=19'>Issue #19 - Update help file to v1.6</a></li>
+	<li class='done'>Bug: Issue Java.net #1 - When a file is open, the synch fails with no error msg</li>
+	<li class='done'>Bug: Issue Java.net #18 - Save options dialog doesn't show dirs</li>
+	<li class='done'>Issue Java.net #4 - Interface for the options that are only in the .properties file</li>
+	<li class='done'>Issue Java.net #13 - Toolbar with common tools</li>
+	<li class='done'>Issue Java.net #17 - Change plain threads to SwingWorker</li>
+	<li class='done'>Issue Java.net #19 - Update help file to v1.6</li>
 </ul>
 <h3>v1.5.2 (28/05/2008):</h3>
 <ul class="tasks">
@@ -187,10 +213,10 @@ Params:
 <h3>v1.5 (17/05/2008):</h3>
 <ul class="tasks">
     <li class="done"> Bug: if there is a path main:\aaa\bbb\ccc.doc and the dir sec:\aaa doesn't exists and there isn't a file main:\aaa\file.ext to be copied, the system crashes:<pre>
-java.io.FileNotFoundException: k:\modelos\LOC\Arrombamento\1315_06.odt (O sistema não pode encontrar o caminho especificado)
+java.io.FileNotFoundException: k:\modelos\LOC\Arrombamento\1315_06.odt (O sistema n&atilde;o pode encontrar o caminho especificado)
 	at java.io.FileOutputStream.open(Native Method)
-	at java.io.FileOutputStream.<init>(Unknown Source)
-	at java.io.FileOutputStream.<init>(Unknown Source)
+	at java.io.FileOutputStream.&lt;init>(Unknown Source)
+	at java.io.FileOutputStream.&lt;init>(Unknown Source)
 	at com.oktiva.util.FileUtil.copy(FileUtil.java:74)
 	at itamar.dirsynch.FilePair.copy(FilePair.java:381)
 	at itamar.dirsynch.FilePair.synchronize(FilePair.java:343)

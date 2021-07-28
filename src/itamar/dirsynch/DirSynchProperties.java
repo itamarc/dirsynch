@@ -7,6 +7,12 @@
 package itamar.dirsynch;
 
 import itamar.util.Logger;
+import static itamar.util.Logger.LEVEL_DEBUG;
+import static itamar.util.Logger.LEVEL_ERROR;
+import static itamar.util.Logger.LEVEL_INFO;
+import static itamar.util.Logger.LEVEL_NONE;
+import static itamar.util.Logger.LEVEL_WARNING;
+import static itamar.util.Logger.log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -94,7 +100,7 @@ public class DirSynchProperties {
     
     // Level of the log: [NONE, ERROR, WARNING, INFO, DEBUG] (default: WARNING)
     //log.level=WARNING
-    private static short logLevel = Logger.LEVEL_WARNING;
+    private static short logLevel = LEVEL_WARNING;
     
     // The file to receive log messages.
     // Value: string, path to file (default: ".\DirSynch.log")
@@ -233,7 +239,7 @@ public class DirSynchProperties {
                 i = Integer.parseInt(prop);
             } catch (NumberFormatException e) {
                 i = defaultValue;
-                Logger.log(Logger.LEVEL_WARNING, "Error reading property '"+key+"': invalid number '"+prop+"'");
+                log(LEVEL_WARNING, "Error reading property '"+key+"': invalid number '"+prop+"'");
             }
         }
         return i;
@@ -246,24 +252,27 @@ public class DirSynchProperties {
         if (prop == null) {
             prop = defaultValue;
         }
-        if ("NONE".equals(prop)) {
-            return Logger.LEVEL_NONE;
-        } else if ("DEBUG".equals(prop)) {
-            return Logger.LEVEL_DEBUG;
-        } else if ("INFO".equals(prop)) {
-            return Logger.LEVEL_INFO;
-        } else if ("WARNING".equals(prop)) {
-            return Logger.LEVEL_WARNING;
-        } else if ("ERROR".equals(prop)) {
-            return Logger.LEVEL_ERROR;
-        } else {
-            return Logger.LEVEL_WARNING;
+        if (null == prop) {
+            return LEVEL_WARNING;
+        } else switch (prop) {
+            case "NONE":
+                return LEVEL_NONE;
+            case "DEBUG":
+                return LEVEL_DEBUG;
+            case "INFO":
+                return LEVEL_INFO;
+            case "WARNING":
+                return LEVEL_WARNING;
+            case "ERROR":
+                return LEVEL_ERROR;
+            default:
+                return LEVEL_WARNING;
         }
     }
     
     public static boolean isHashEnabled() {
         if (!initied) {
-            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+            log(LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return hashEnabled;
     }
@@ -284,63 +293,63 @@ public class DirSynchProperties {
 
     public static short getLogLevel() {
         if (!initied) {
-            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+            log(LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return logLevel;
     }
 
     public static String getLogFile() {
         if (!initied) {
-            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+            log(LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return logFile;
     }
 
     public static String getMainDir() {
         if (!initied) {
-            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+            log(LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return mainDir;
     }
 
     public static String getSecDir() {
         if (!initied) {
-            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+            log(LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return secDir;
     }
 
     public static boolean isSubDirsInclude() {
         if (!initied) {
-            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+            log(LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return subDirsInclude;
     }
 
     public static boolean isHideEquals() {
         if (!initied) {
-            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+            log(LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return hideEquals;
     }
 
     public static String getPropertiesAsString() {
         if (!initied) {
-            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+            log(LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return properties.toString();
     }
 
     public static boolean isSynchTimesSameHash() {
         if (!initied) {
-            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+            log(LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return synchTimesSameHash;
     }
 
     public static boolean isLogFileAppend() {
         if (!initied) {
-            Logger.log(Logger.LEVEL_WARNING, "DirSynchProperties not initialized!");
+            log(LEVEL_WARNING, "DirSynchProperties not initialized!");
         }
         return logFileAppend;
     }

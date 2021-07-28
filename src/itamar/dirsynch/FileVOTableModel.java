@@ -5,7 +5,7 @@
  */
 package itamar.dirsynch;
 
-import java.util.Iterator;
+import static itamar.dirsynch.FilePair.EQUALS;
 import java.util.Vector;
 import javax.swing.table.DefaultTableModel;
 
@@ -40,12 +40,11 @@ public class FileVOTableModel extends DefaultTableModel {
 	this.files = files;
 	this.hideEquals = hideEquals;
 	setRowCount(0);
-	for (Iterator iter = files.iterator(); iter.hasNext();) {
-	    FilePair file = (FilePair) iter.next();
-	    if (hideEquals != true || file.getNewer() != FilePair.EQUALS) {
-		addRow(getDataVector(file));
-	    }
-	}
+        for (FilePair file : files) {
+            if (hideEquals != true || file.getNewer() != EQUALS) {
+                addRow(getDataVector(file));
+            }
+        }
     }
     /**
      * Returns the FilePair's Vector with all files or only the different ones depending on the hideEquals attribute.
@@ -53,7 +52,7 @@ public class FileVOTableModel extends DefaultTableModel {
      */
     public Vector<FilePair> getFiles() {
 	if (hideEquals) {
-	    Vector<FilePair> clean = new Vector<FilePair>();
+	    Vector<FilePair> clean = new Vector<>();
             for (FilePair filePair: files) {
 		if (!filePair.isEquals()) {
 		    clean.add(filePair);
@@ -73,7 +72,7 @@ public class FileVOTableModel extends DefaultTableModel {
     @SuppressWarnings("unchecked")
     private Vector getDataVector(FilePair file) {
 	Vector v = new Vector();
-	v.add(new Boolean(file.getNewer() != FilePair.EQUALS));
+	v.add(file.getNewer() != EQUALS);
 	v.add(file.getMainSymbol());
 	v.add(file.getSecSymbol());
 	v.add(file.getPath());

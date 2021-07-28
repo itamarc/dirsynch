@@ -6,7 +6,10 @@
 package itamar.dirsynch;
 
 import com.oktiva.util.FileUtil;
-import itamar.util.Logger;
+import static itamar.util.Logger.LEVEL_DEBUG;
+import static itamar.util.Logger.LEVEL_ERROR;
+import static itamar.util.Logger.LEVEL_INFO;
+import static itamar.util.Logger.log;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -116,7 +119,7 @@ public class SynchMapChecker {
     private void loadSynchFile(File synchFile, Map<String, Integer> map,
 	    Map<Pattern, Integer> wildCards) {
         try {
-		Logger.log(Logger.LEVEL_DEBUG, "Loading {No,Only}Synch file: "+synchFile.getCanonicalPath());
+		log(LEVEL_DEBUG, "Loading {No,Only}Synch file: "+synchFile.getCanonicalPath());
             String[] lines = FileUtil.readFileAsArray(synchFile);
             for (int i = 0; i < lines.length; i++) {
                 while (lines[i].endsWith("\r") || lines[i].endsWith("\n")) {
@@ -133,18 +136,18 @@ public class SynchMapChecker {
 			} else {
 				map.put(lines[i], Integer.valueOf(options));
 			}
-			Logger.log(Logger.LEVEL_DEBUG,
+			log(LEVEL_DEBUG,
 				"options="+Integer.toBinaryString(options)+" & CS_MAP="+
 				Integer.toBinaryString(options & CASE_SENSITIVITY_MAP)+
 				" & FD_MAP="+Integer.toBinaryString(options & OBJECT_TYPE_MAP)+
 				" & PM_MAP"+Integer.toBinaryString(options & PARTIAL_MATCH_MAP));
                 }
             }
-            Logger.log(Logger.LEVEL_INFO, "{No,Only}Synch file loaded: "+synchFile.getCanonicalPath());
-            Logger.log(Logger.LEVEL_DEBUG, "Map: "+map+"  WildCards: "+wildCards);
+            log(LEVEL_INFO, "{No,Only}Synch file loaded: "+synchFile.getCanonicalPath());
+            log(LEVEL_DEBUG, "Map: "+map+"  WildCards: "+wildCards);
         } catch (IOException e) {
-            Logger.log(Logger.LEVEL_ERROR, "Failed to load file '"+synchFile+"'.");
-            Logger.log(Logger.LEVEL_ERROR, e);
+            log(LEVEL_ERROR, "Failed to load file '"+synchFile+"'.");
+            log(LEVEL_ERROR, e);
         }
     }
 
@@ -185,16 +188,16 @@ public class SynchMapChecker {
 		if (!getOnlySynchMap().isEmpty() || !getWildCardsOnlySynch().isEmpty()) {
 			// Check if the file is on the onlysynch list
 			only = match(file, rootPathSize, getOnlySynchMap(), getWildCardsOnlySynch());
-			Logger.log(Logger.LEVEL_DEBUG, "Checked onlysynch rules (" + file.getName() + "): " + only);
+			log(LEVEL_DEBUG, "Checked onlysynch rules (" + file.getName() + "): " + only);
 		}
 		// If there is no onlysynch restriction, test for nosynch ones
 		if (only) {
 			blocked = match(file, rootPathSize, getNoSynchMap(), getWildCardsNoSynch());
 		} else {
 			blocked = true;
-			Logger.log(Logger.LEVEL_DEBUG, "File blocked by onlysynch rule.");
+			log(LEVEL_DEBUG, "File blocked by onlysynch rule.");
 		}
-		Logger.log(Logger.LEVEL_DEBUG, "Exiting SynchMapChecker.isBlocked: " + blocked);
+		log(LEVEL_DEBUG, "Exiting SynchMapChecker.isBlocked: " + blocked);
 		return blocked;
 	}
 
@@ -202,7 +205,7 @@ public class SynchMapChecker {
 		Map<String, Integer> map, Map<Pattern, Integer> wildCardsMap) {
 		String fileName = file.getName();
 		String relativePath = file.getPath().substring(rootPathSize);
-		Logger.log(Logger.LEVEL_DEBUG, "SynchMapChecker.match: " + fileName);
+		log(LEVEL_DEBUG, "SynchMapChecker.match: " + fileName);
 		int options = 0;
 		boolean match = false;
 		if (map.containsKey(fileName)) {
@@ -231,7 +234,7 @@ public class SynchMapChecker {
 					String nameOrPath = (((options & PARTIAL_MATCH_MAP) == RELATIVE_PATH_OPTION) ? relativePath : fileName);
 					if (pattern.matcher(nameOrPath).matches()) {
 						match = true;
-						Logger.log(Logger.LEVEL_DEBUG, "Match [" + pattern + "]: " + nameOrPath);
+						log(LEVEL_DEBUG, "Match [" + pattern + "]: " + nameOrPath);
 						break;
 					}
 				}
@@ -260,7 +263,7 @@ public class SynchMapChecker {
 	 */
 	private int parseOptionalTags(String[] lines, int i) {
 		int options = 0;
-		Logger.log(Logger.LEVEL_DEBUG, "Parsing options from line: "+lines[i]);
+		log(LEVEL_DEBUG, "Parsing options from line: "+lines[i]);
 		while (lines[i].startsWith("<")) {
 			if (lines[i].startsWith("<F>")) {
 				options += FILES_ONLY_OPTION;
@@ -285,7 +288,7 @@ public class SynchMapChecker {
 				lines[i] = lines[i].substring(4);
 			}
 		}
-		Logger.log(Logger.LEVEL_DEBUG, "Parsed line: "+lines[i]);
+		log(LEVEL_DEBUG, "Parsed line: "+lines[i]);
 		lines[i].replaceAll("</>", File.pathSeparator);
 		return options;
 	}
