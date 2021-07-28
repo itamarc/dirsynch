@@ -76,80 +76,78 @@ public class MainJFrame extends javax.swing.JFrame {
 
     /** Creates new form MainJFrame */
     public MainJFrame() {
-	initDirSynchProperties();
-	initComponents();
-	setTitle("DirSynch " + VERSION);
-	jTableFiles.getColumn("Sel").setMaxWidth(30);
-	jTableFiles.getColumn("Main").setMaxWidth(30);
-	jTableFiles.getColumn("Sec").setMaxWidth(30);
-	setStatusBarText(FilePair.getLegend());
+        initDirSynchProperties();
+        initComponents();
+        setTitle("DirSynch " + VERSION);
+        jTableFiles.getColumn("Sel").setMaxWidth(30);
+        jTableFiles.getColumn("Main").setMaxWidth(30);
+        jTableFiles.getColumn("Sec").setMaxWidth(30);
+        setStatusBarText(FilePair.getLegend());
 
-	ListSelectionModel rowSM = jTableFiles.getSelectionModel();
-	rowSM.addListSelectionListener((ListSelectionEvent e) -> {
-            //Ignore extra messages.
-            if (e.getValueIsAdjusting()) {
-                return;
-            }
-            ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-            if (lsm.isSelectionEmpty()) {
-                //System.out.println("No rows are selected.");
-                setStatusBarText(FilePair.getLegend());
-            } else {
-                int selectedRow = lsm.getMinSelectionIndex();
-//                    System.out.println("Row " + selectedRow
-//                            + " is now selected.");
-updateStatus();
-            }
-        });
+        ListSelectionModel rowSM = jTableFiles.getSelectionModel();
+        rowSM.addListSelectionListener((ListSelectionEvent e) -> {
+                //Ignore extra messages.
+                if (e.getValueIsAdjusting()) {
+                    return;
+                }
+                ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+                if (lsm.isSelectionEmpty()) {
+                    //System.out.println("No rows are selected.");
+                    setStatusBarText(FilePair.getLegend());
+                } else {
+                    int selectedRow = lsm.getMinSelectionIndex();
+    //                    System.out.println("Row " + selectedRow
+    //                            + " is now selected.");
+                    updateStatus();
+                }
+            });
 
-	initOptions();
-	firstInit = false;
+        initOptions();
+        firstInit = false;
     }
 
     private void initDirSynchProperties() {
-	try {
-	    DirSynchProperties.init(propertiesFilePath);
-	} catch (FileNotFoundException ex) {
-	    ex.printStackTrace(); // Logger is not initialized at this point
-	    showMessageDialog(this,
-		    "File '" + propertiesFilePath + "' not found!",
-		    "Warning!", WARNING_MESSAGE);
-	} catch (IOException ex) {
-	    ex.printStackTrace(); // Logger is not initialized at this point
-	    showMessageDialog(this,
-		    "Error reading file '" + propertiesFilePath + "':\n" + ex.getMessage(),
-		    "Warning!", WARNING_MESSAGE);
-	}
-	if (!DirSynchProperties.getLogFile().equals(Logger.getLogFile())) {
-	    firstInit = true;
-	}
-	Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile(), DirSynchProperties.isLogFileAppend());
-	if (firstInit) {
-	    log(LEVEL_INFO, "==========  DirSynch v" + VERSION + " started.  ==========");
-	}
-	log(LEVEL_INFO, "Properties initialized with file '" + propertiesFilePath + "'");
-	log(LEVEL_DEBUG, "Properties read: " + getPropertiesAsString());
+        try {
+            DirSynchProperties.init(propertiesFilePath);
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace(); // Logger is not initialized at this point
+            showMessageDialog(this, "File '" + propertiesFilePath + "' not found!", "Warning!", WARNING_MESSAGE);
+        } catch (IOException ex) {
+            ex.printStackTrace(); // Logger is not initialized at this point
+            showMessageDialog(this, "Error reading file '" + propertiesFilePath + "':\n" + ex.getMessage(), "Warning!",
+                    WARNING_MESSAGE);
+        }
+        if (!DirSynchProperties.getLogFile().equals(Logger.getLogFile())) {
+            firstInit = true;
+        }
+        Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile(),
+                DirSynchProperties.isLogFileAppend());
+        if (firstInit) {
+            log(LEVEL_INFO, "==========  DirSynch v" + VERSION + " started.  ==========");
+        }
+        log(LEVEL_INFO, "Properties initialized with file '" + propertiesFilePath + "'");
+        log(LEVEL_DEBUG, "Properties read: " + getPropertiesAsString());
     }
 
     private void initOptions() {
-	// defaultXXXDirPath comes from command-line parameters and has priority over .properties file
-	setMainDirPath((defaultMainDirPath == null ? getMainDir() : defaultMainDirPath));
-	setSecDirPath((defaultSecDirPath == null ? getSecDir() : defaultSecDirPath));
+        // defaultXXXDirPath comes from command-line parameters and has priority over .properties file
+        setMainDirPath((defaultMainDirPath == null ? getMainDir() : defaultMainDirPath));
+        setSecDirPath((defaultSecDirPath == null ? getSecDir() : defaultSecDirPath));
 
-	log(LEVEL_DEBUG, "SubDirsInclude=" + isSubDirsInclude());
-	jChkBxMenuItemUseHash.setSelected(DirSynchProperties.isHashEnabled());
-	jChkBxMenuItemIncSubdirs.setSelected(isSubDirsInclude());
-	jChkBxMenuItemHideEquals.setSelected(DirSynchProperties.isHideEquals());
-	jChkBxMenuItemSynchTimesHash.setSelected(DirSynchProperties.isSynchTimesSameHash());
+        log(LEVEL_DEBUG, "SubDirsInclude=" + isSubDirsInclude());
+        jChkBxMenuItemUseHash.setSelected(DirSynchProperties.isHashEnabled());
+        jChkBxMenuItemIncSubdirs.setSelected(isSubDirsInclude());
+        jChkBxMenuItemHideEquals.setSelected(DirSynchProperties.isHideEquals());
+        jChkBxMenuItemSynchTimesHash.setSelected(DirSynchProperties.isSynchTimesSameHash());
 
-	jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
+        jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
     }
 
     private void selectLogFile() {
-		String userDir = System.getProperty("user.dir");
+        String userDir = System.getProperty("user.dir");
         JFileChooser fileDiag = new JFileChooser(userDir);
         FileFilter ff = new FileFilter() {
-			@Override
+            @Override
             public boolean accept(File f) {
                 if (f.isFile()) {
                     return f.getName().endsWith(".log");
@@ -157,7 +155,8 @@ updateStatus();
                     return true;
                 }
             }
-			@Override
+
+            @Override
             public String getDescription() {
                 return "Log Files (*.log)";
             }
@@ -167,22 +166,21 @@ updateStatus();
         int ret = fileDiag.showOpenDialog(this);
         if (ret == APPROVE_OPTION) {
             File logFile = fileDiag.getSelectedFile();
-	    if (logFile.getParent().equals(userDir)) {
-		jTxtFldLogFile.setText(logFile.getName());
-	    } else {
-		jTxtFldLogFile.setText(logFile.getAbsolutePath());
-	    }
+            if (logFile.getParent().equals(userDir)) {
+                jTxtFldLogFile.setText(logFile.getName());
+            } else {
+                jTxtFldLogFile.setText(logFile.getAbsolutePath());
+            }
         }
     }
 
     private void setOptionsInProps() {
-	setMainDir(getMainDirPath());
-	setSecDir(getSecDirPath());
-
-	setHashEnabled(isHashEnabled());
-	setSubDirsInclude(isIncludeSubdirs());
-	setHideEquals(isHideEquals());
-	setSynchTimesSameHash(isSynchTimesSameHash());
+        setMainDir(getMainDirPath());
+        setSecDir(getSecDirPath());
+        setHashEnabled(isHashEnabled());
+        setSubDirsInclude(isIncludeSubdirs());
+        setHideEquals(isHideEquals());
+        setSynchTimesSameHash(isSynchTimesSameHash());
 //        jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
     }
 
