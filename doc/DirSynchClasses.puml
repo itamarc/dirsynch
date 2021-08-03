@@ -1,0 +1,122 @@
+grep -e "public\|private" MainJFrame.java | grep "(" | grep "static" | awk '{split($0,b,"("); split(b[1],a," "); split(b[2],c,")"); v = "-"; if (a[1] == "public") v = "+"; print "{static} " v a[3] " " a[4] "(" c[1] ")"}'
+grep -e "public\|private" MainJFrame.java | grep "(" | grep -v "static" | awk '{split($0,b,"("); split(b[1],a," "); split(b[2],c,")"); v = "-"; if (a[1] == "public") v = "+"; print v a[2] " " a[3] "(" c[1] ")"}'
+
+@startuml
+class com.oktiva.util.FileUtil
+class itamar.dirsynch.DirComparator {
++DirComparator (MainJFrame mainFrame)
++void propertyChange(PropertyChangeEvent evt)
++void done()
+-void loadNoSynchFiles()
+-void buildMap(File dir, Map<String, File> dirMap, int rootPathSize)
+}
+class itamar.dirsynch.DirSynchExceptionHandler
+class itamar.dirsynch.DirSynchProperties
+class itamar.dirsynch.FilePair
+class itamar.dirsynch.FileVOTableModel
+class itamar.dirsynch.MainJFrame {
+{static} +void main(String args[])
+{static} -boolean processParams(String[] args)
+{static} -void showUsage()
++MainJFrame ()
+-void initDirSynchProperties()
+-void initOptions()
+-void selectLogFile()
++boolean accept(File f)
++String getDescription()
+-void setOptionsInProps()
+-void initComponents()
+-void selectDir(ActionEvent evt)
+-boolean dirsOk()
+-void setMainDirPath(String path)
+-void setSecDirPath(String path)
+-void compareDirs()
+-boolean getHideEquals()
+-void synchronize()
+-void setStatusBarText(String text)
+-void updateStatus()
+-FilePair getSelectedFilePair()
+-void showAbout()
+-void selectAllFiles(boolean checked)
+-void selectFilesByStatus(short status)
+-void selectFilesByStatus(short[] statusList)
+-boolean statusInList(short status, short[] statusList)
+-void selectWithRegexp(boolean select)
+-void loadOptions()
+-void saveOptions()
+}
+class itamar.dirsynch.SynchMapChecker {
++SynchMapChecker (File[] noSynchFiles, File[] onlySynchFiles)
+-void loadSynchFile(File synchFile, Map<String, Integer> map,)
+-void init(File[] noSynchFiles, File[] onlySynchFiles)
++boolean isBlocked(File file, int rootPathSize)
+-boolean match(File file, int rootPathSize,)
+-int parseOptionalTags(String[] lines, int i)
+}
+class itamar.dirsynch.Synchronizer {
++Synchronizer (MainJFrame mainFrame)
++void propertyChange(PropertyChangeEvent evt)
++void done()
+}
+class itamar.util.CryptoUtil
+class itamar.util.Logger
+class java.security.NoSuchAlgorithmException
+class java.text.DateFormat
+class java.text.DecimalFormat
+class javax.swing.JFrame
+class javax.swing.JOptionPane
+class javax.swing.ProgressMonitor
+class javax.swing.SwingWorker
+class javax.swing.event.ListSelectionEvent
+class javax.swing.filechooser.FileFilter
+class javax.swing.table.DefaultTableModel
+interface Thread.UncaughtExceptionHandler
+interface java.beans.PropertyChangeListener
+interface java.lang.Comparable
+itamar.dirsynch.DirComparator ..> itamar.util.Logger
+itamar.dirsynch.DirComparator ..> java.awt.Cursor
+itamar.dirsynch.DirComparator ..> java.beans.PropertyChangeEvent
+itamar.dirsynch.DirComparator ..> javax.swing.JOptionPane
+itamar.dirsynch.DirComparator ..> javax.swing.ProgressMonitor
+itamar.dirsynch.DirComparator ..> javax.swing.SwingWorker
+itamar.dirsynch.DirComparator --|> java.beans.PropertyChangeListener
+itamar.dirsynch.DirSynchExceptionHandler ..> itamar.util.Logger
+itamar.dirsynch.DirSynchExceptionHandler --|> Thread.UncaughtExceptionHandler
+itamar.dirsynch.DirSynchProperties ..> itamar.util.Logger
+itamar.dirsynch.FilePair ..> java.lang.Override
+itamar.dirsynch.FilePair ..> com.oktiva.util.FileUtil
+itamar.dirsynch.FilePair ..> itamar.util.CryptoUtil
+itamar.dirsynch.FilePair ..> itamar.util.Logger
+itamar.dirsynch.FilePair ..> java.text.DateFormat
+itamar.dirsynch.FilePair ..> java.text.DecimalFormat
+itamar.dirsynch.FilePair --|> java.lang.Comparable
+itamar.dirsynch.FileVOTableModel ..> java.lang.Override
+itamar.dirsynch.FileVOTableModel ..> java.lang.SuppressWarnings
+itamar.dirsynch.FileVOTableModel ..> itamar.dirsynch.FilePair
+itamar.dirsynch.FileVOTableModel --|> javax.swing.table.DefaultTableModel
+itamar.dirsynch.MainJFrame ..> itamar.dirsynch.DirSynchProperties
+itamar.dirsynch.MainJFrame ..> itamar.dirsynch.FilePair
+itamar.dirsynch.MainJFrame ..> itamar.util.Logger
+itamar.dirsynch.MainJFrame ..> java.awt.EventQueue
+itamar.dirsynch.MainJFrame ..> java.awt.event.ActionEvent
+itamar.dirsynch.MainJFrame ..> java.lang.Thread
+itamar.dirsynch.MainJFrame ..> java.security.NoSuchAlgorithmException
+itamar.dirsynch.MainJFrame ..> javax.swing.JButton
+itamar.dirsynch.MainJFrame ..> javax.swing.JFileChooser
+itamar.dirsynch.MainJFrame --|> javax.swing.JFrame
+itamar.dirsynch.MainJFrame ..> javax.swing.JOptionPane
+itamar.dirsynch.MainJFrame ..> javax.swing.ListSelectionModel
+itamar.dirsynch.MainJFrame ..> javax.swing.event.ListSelectionEvent
+itamar.dirsynch.MainJFrame ..> javax.swing.filechooser.FileFilter
+itamar.dirsynch.SynchMapChecker ..> com.oktiva.util.FileUtil
+itamar.dirsynch.SynchMapChecker ..> itamar.util.Logger
+itamar.dirsynch.Synchronizer ..> itamar.util.Logger
+itamar.dirsynch.Synchronizer ..> java.awt.Cursor
+itamar.dirsynch.Synchronizer ..> java.beans.PropertyChangeEvent
+itamar.dirsynch.Synchronizer ..> java.lang.Thread
+itamar.dirsynch.Synchronizer ..> java.security.NoSuchAlgorithmException
+itamar.dirsynch.Synchronizer ..> javax.swing.JOptionPane
+itamar.dirsynch.Synchronizer ..> javax.swing.ProgressMonitor
+itamar.dirsynch.Synchronizer ..> javax.swing.SwingWorker
+itamar.dirsynch.Synchronizer --|> java.beans.PropertyChangeListener
+@enduml
