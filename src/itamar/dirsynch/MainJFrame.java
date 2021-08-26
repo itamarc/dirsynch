@@ -5,16 +5,6 @@
  */
 package itamar.dirsynch;
 
-import static itamar.dirsynch.DirSynchProperties.getMainDir;
-import static itamar.dirsynch.DirSynchProperties.getPropertiesAsString;
-import static itamar.dirsynch.DirSynchProperties.getSecDir;
-import static itamar.dirsynch.DirSynchProperties.isSubDirsInclude;
-import static itamar.dirsynch.DirSynchProperties.setHashEnabled;
-import static itamar.dirsynch.DirSynchProperties.setHideEquals;
-import static itamar.dirsynch.DirSynchProperties.setMainDir;
-import static itamar.dirsynch.DirSynchProperties.setSecDir;
-import static itamar.dirsynch.DirSynchProperties.setSubDirsInclude;
-import static itamar.dirsynch.DirSynchProperties.setSynchTimesSameHash;
 import static itamar.dirsynch.FilePair.MAIN_NEWER;
 import static itamar.dirsynch.FilePair.ONLY_MAIN;
 import static itamar.dirsynch.FilePair.ONLY_SEC;
@@ -25,14 +15,10 @@ import static itamar.util.Logger.LEVEL_ERROR;
 import static itamar.util.Logger.LEVEL_INFO;
 import static itamar.util.Logger.LEVEL_WARNING;
 import static itamar.util.Logger.log;
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import static java.lang.Thread.currentThread;
-import static java.lang.Thread.getDefaultUncaughtExceptionHandler;
-import static java.lang.Thread.setDefaultUncaughtExceptionHandler;
 import java.security.NoSuchAlgorithmException;
 import java.util.Vector;
 import java.util.regex.Pattern;
@@ -64,21 +50,13 @@ public class MainJFrame extends javax.swing.JFrame {
 
     private File mainDir;
     private File secDir;
-    private static String defaultMainDirPath = null;
-    private static String defaultSecDirPath = null;
-    private static final String VERSION = "1.7alpha2";
-    private static boolean defaultKeep = false;
     private boolean firstLoad = true;
-    private boolean firstInit = true;
     private final String helpFile = "DirSynch-help.html";
-    private static String propertiesFilePath = "DirSynch.properties";
-    static DirSynchExceptionHandler handler = null;
 
     /** Creates new form MainJFrame */
-    public MainJFrame() {
-        initDirSynchProperties();
+    public MainJFrame(String defaultMainDirPath, String defaultSecDirPath, boolean defaultKeep) {
         initComponents();
-        setTitle("DirSynch " + VERSION);
+        setTitle("DirSynch " + App.VERSION);
         jTableFiles.getColumn("Sel").setMaxWidth(30);
         jTableFiles.getColumn("Main").setMaxWidth(30);
         jTableFiles.getColumn("Sec").setMaxWidth(30);
@@ -92,51 +70,28 @@ public class MainJFrame extends javax.swing.JFrame {
                 }
                 ListSelectionModel lsm = (ListSelectionModel) e.getSource();
                 if (lsm.isSelectionEmpty()) {
-                    //System.out.println("No rows are selected.");
                     setStatusBarText(FilePair.getLegend());
                 } else {
-                    int selectedRow = lsm.getMinSelectionIndex();
-    //                    System.out.println("Row " + selectedRow
-    //                            + " is now selected.");
+                    lsm.getMinSelectionIndex();
                     updateStatus();
                 }
             });
 
-        initOptions();
-        firstInit = false;
+        initOptions(defaultMainDirPath, defaultSecDirPath, defaultKeep);
     }
 
-    private void initDirSynchProperties() {
-        try {
-            DirSynchProperties.init(propertiesFilePath);
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace(); // Logger is not initialized at this point
-            showMessageDialog(this, "File '" + propertiesFilePath + "' not found!", "Warning!", WARNING_MESSAGE);
-        } catch (IOException ex) {
-            ex.printStackTrace(); // Logger is not initialized at this point
-            showMessageDialog(this, "Error reading file '" + propertiesFilePath + "':\n" + ex.getMessage(), "Warning!",
-                    WARNING_MESSAGE);
-        }
-        if (!DirSynchProperties.getLogFile().equals(Logger.getLogFile())) {
-            firstInit = true;
-        }
-        Logger.init(DirSynchProperties.getLogLevel(), DirSynchProperties.getLogFile(),
-                DirSynchProperties.isLogFileAppend());
-        if (firstInit) {
-            log(LEVEL_INFO, "==========  DirSynch v" + VERSION + " started.  ==========");
-        }
-        log(LEVEL_INFO, "Properties initialized with file '" + propertiesFilePath + "'");
-        log(LEVEL_DEBUG, "Properties read: " + getPropertiesAsString());
+    public void showWarning(String message) {
+        showMessageDialog(this, message, "Warning!", WARNING_MESSAGE);
     }
-
-    private void initOptions() {
+    
+    protected void initOptions(String defaultMainDirPath, String defaultSecDirPath, boolean defaultKeep) {
         // defaultXXXDirPath comes from command-line parameters and has priority over .properties file
-        setMainDirPath((defaultMainDirPath == null ? getMainDir() : defaultMainDirPath));
-        setSecDirPath((defaultSecDirPath == null ? getSecDir() : defaultSecDirPath));
+        setMainDirPath((defaultMainDirPath == null ? DirSynchProperties.getMainDir() : defaultMainDirPath));
+        setSecDirPath((defaultSecDirPath == null ? DirSynchProperties.getSecDir() : defaultSecDirPath));
 
-        log(LEVEL_DEBUG, "SubDirsInclude=" + isSubDirsInclude());
+        log(LEVEL_DEBUG, "SubDirsInclude=" + DirSynchProperties.isSubDirsInclude());
         jChkBxMenuItemUseHash.setSelected(DirSynchProperties.isHashEnabled());
-        jChkBxMenuItemIncSubdirs.setSelected(isSubDirsInclude());
+        jChkBxMenuItemIncSubdirs.setSelected(DirSynchProperties.isSubDirsInclude());
         jChkBxMenuItemHideEquals.setSelected(DirSynchProperties.isHideEquals());
         jChkBxMenuItemSynchTimesHash.setSelected(DirSynchProperties.isSynchTimesSameHash());
 
@@ -175,12 +130,12 @@ public class MainJFrame extends javax.swing.JFrame {
     }
 
     private void setOptionsInProps() {
-        setMainDir(getMainDirPath());
-        setSecDir(getSecDirPath());
-        setHashEnabled(isHashEnabled());
-        setSubDirsInclude(isIncludeSubdirs());
-        setHideEquals(isHideEquals());
-        setSynchTimesSameHash(isSynchTimesSameHash());
+        DirSynchProperties.setMainDir(getMainDirPath());
+        DirSynchProperties.setSecDir(getSecDirPath());
+        DirSynchProperties.setHashEnabled(isHashEnabled());
+        DirSynchProperties.setSubDirsInclude(isIncludeSubdirs());
+        DirSynchProperties.setHideEquals(isHideEquals());
+        DirSynchProperties.setSynchTimesSameHash(isSynchTimesSameHash());
 //        jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
     }
 
@@ -896,10 +851,7 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItemAllActionPerformed
 
     private void jMenuItemDirSynchHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDirSynchHelpActionPerformed
-	String helpText;
 	try {
-//            helpText = FileUtil.readFile(helpFile);
-//            jEdtPaneHelp.setText(helpText);
 	    jEdtPaneHelp.setPage("file:///" + System.getProperty("user.dir") + File.separator + helpFile);
 	    jEdtPaneHelp.setCaretPosition(0);
 	    jDialogHelp.pack();
@@ -1008,80 +960,6 @@ private void jBtnSelRegexpActionPerformed(java.awt.event.ActionEvent evt) {//GEN
 private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnUnselRegexpActionPerformed
 	selectWithRegexp(false);
 }//GEN-LAST:event_jBtnUnselRegexpActionPerformed
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-	System.setProperty("sun.awt.exception.handler",
-	    DirSynchExceptionHandler.class.getName());
-	handler = new DirSynchExceptionHandler();
-	setDefaultUncaughtExceptionHandler(handler);
-	currentThread().setUncaughtExceptionHandler(handler);
-        if (processParams(args)) {
-            EventQueue.invokeLater(() -> {
-                currentThread().setUncaughtExceptionHandler(handler);
-                if (currentThread().getUncaughtExceptionHandler() != getDefaultUncaughtExceptionHandler()) {
-                    System.err.println("UEH=" + currentThread().getUncaughtExceptionHandler().getClass().getName() + " DefaultUEH=" + getDefaultUncaughtExceptionHandler().getClass().getName());
-                }
-                new MainJFrame().setVisible(true);
-            });
-        }
-    }
-    
-    private static boolean processParams(String[] args) {
-        boolean continueAfterThis = true;
-        try {
-            for (int i = 0; i < args.length; i++) {
-                if (null == args[i]) {
-                    System.out.println("Incorrect parameters!\n");
-                    showUsage();
-                    continueAfterThis = false;
-                } else switch (args[i]) {
-                    case "-main":
-                        defaultMainDirPath = args[++i];
-                        break;
-                    case "-sec":
-                        defaultSecDirPath = args[++i];
-                        break;
-                    case "-prop":
-                        propertiesFilePath = args[++i];
-                        break;
-                    case "-keep":
-                        defaultKeep = true;
-                        break;
-                    case "-help":
-                    case "-h":
-                    case "/?":
-                    case "--help":
-                        showUsage();
-                        continueAfterThis = false;
-                        break;
-                    default:
-                        System.out.println("Incorrect parameters!\n");
-                        showUsage();
-                        continueAfterThis = false;
-                        break;
-                }
-            }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("Incorrect parameters!\n");
-            showUsage();
-            continueAfterThis = false;
-        }
-        return continueAfterThis;
-    }
-    
-    private static void showUsage() {
-        System.out.println("DirSynch "+VERSION+"\n"+(char)184+" 2006-2021 Itamar Carvalho <itamarc at gmail.com>\n");
-        System.out.println("java[w] -jar DirSynch.jar <Params>");
-        System.out.println("Params:");
-        System.out.println("  -main <main dir path>           Set the main dir.");
-        System.out.println("  -sec <sec dir path>             Set the secondary dir.");
-        System.out.println("  -keep                           Keep backups.");
-        System.out.println("  -prop <properties file path>    DirSynch.properties file path.");
-        System.out.println("  --help | -help | -h | /?        Show this usage message.");
-    }
     
     private void selectDir(ActionEvent evt) {
         JButton button = (JButton)evt.getSource();
@@ -1229,7 +1107,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     
     private void showAbout() {
         showMessageDialog(this,
-                "DirSynch "+VERSION+"\nhttps://itamarc.github.io/dirsynch/\n"+
+                "DirSynch "+App.VERSION+"\nhttps://itamarc.github.io/dirsynch/\n"+
                         "\u00A9 2007-2021 Itamar Carvalho <itamarc+dirsynch AT gmail\u00B7com>\n\n"+
                         "This software is released under the GNU General Public License version 3.\n"+
                         "https://www.gnu.org/licenses/gpl-3.0.txt",
@@ -1347,11 +1225,9 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
         if (ret == APPROVE_OPTION) {
             File propsFile = fileDiag.getSelectedFile();
             log(LEVEL_DEBUG, "File selected to open: "+propsFile.getAbsolutePath());
-            propertiesFilePath = propsFile.getAbsolutePath();
-            initDirSynchProperties();
-            defaultMainDirPath = null;
-            defaultSecDirPath = null;
-            initOptions();
+            String propsFilePath = propsFile.getAbsolutePath();
+            App.initDirSynchProperties(propsFilePath);
+            initOptions(null, null, false);
         }
     }
 

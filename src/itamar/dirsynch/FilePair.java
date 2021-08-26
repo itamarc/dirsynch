@@ -111,22 +111,23 @@ public class FilePair implements Comparable<FilePair> {
      */
     public String getMainSymbol() {
         if (isInMainDir()) {
-            if (getNewer() == EQUALS) {
-                return EQUAL_SYMBOL;
-            } else if (getNewer() == MAIN_NEWER) {
-                return NEWER_SYMBOL;
-            } else if (getNewer() == SEC_NEWER) {
-                return OLDER_SYMBOL;
-            } else if (getNewer() == ONLY_MAIN) {
-                return ONLY_SYMBOL;
-            } else if (getNewer() == MAIN_BIGGER) {
-                return BIGGER_SYMBOL;
-            } else if (getNewer() == SEC_BIGGER) {
-                return SMALLER_SYMBOL;
-            } else if (getNewer() == DIFF_HASH) {
-                return DIFF_HASH_SYMBOL;
-            } else {
-                return UNKNOWN_SYMBOL;
+            switch (getNewer()) {
+                case EQUALS:
+                    return EQUAL_SYMBOL;
+                case MAIN_NEWER:
+                    return NEWER_SYMBOL;
+                case SEC_NEWER:
+                    return OLDER_SYMBOL;
+                case ONLY_MAIN:
+                    return ONLY_SYMBOL;
+                case MAIN_BIGGER:
+                    return BIGGER_SYMBOL;
+                case SEC_BIGGER:
+                    return SMALLER_SYMBOL;
+                case DIFF_HASH:
+                    return DIFF_HASH_SYMBOL;
+                default:
+                    return UNKNOWN_SYMBOL;
             }
         } else {
             return ABSENT_SYMBOL;
@@ -139,22 +140,23 @@ public class FilePair implements Comparable<FilePair> {
      */
     public String getSecSymbol() {
         if (isInSecDir()) {
-            if (getNewer() == EQUALS) {
-                return EQUAL_SYMBOL;
-            } else if (getNewer() == SEC_NEWER) {
-                return NEWER_SYMBOL;
-            } else if (getNewer() == MAIN_NEWER) {
-                return OLDER_SYMBOL;
-            } else if (getNewer() == ONLY_SEC) {
-                return ONLY_SYMBOL;
-            } else if (getNewer() == SEC_BIGGER) {
-                return BIGGER_SYMBOL;
-            } else if (getNewer() == MAIN_BIGGER) {
-                return SMALLER_SYMBOL;
-            } else if (getNewer() == DIFF_HASH) {
-                return DIFF_HASH_SYMBOL;
-            } else {
-                return UNKNOWN_SYMBOL;
+            switch (getNewer()) {
+                case EQUALS:
+                    return EQUAL_SYMBOL;
+                case SEC_NEWER:
+                    return NEWER_SYMBOL;
+                case MAIN_NEWER:
+                    return OLDER_SYMBOL;
+                case ONLY_SEC:
+                    return ONLY_SYMBOL;
+                case SEC_BIGGER:
+                    return BIGGER_SYMBOL;
+                case MAIN_BIGGER:
+                    return SMALLER_SYMBOL;
+                case DIFF_HASH:
+                    return DIFF_HASH_SYMBOL;
+                default:
+                    return UNKNOWN_SYMBOL;
             }
         } else {
             return ABSENT_SYMBOL;
@@ -172,6 +174,8 @@ public class FilePair implements Comparable<FilePair> {
     /**
      *
      * @param mainFile
+     * @throws java.io.IOException
+     * @throws java.security.NoSuchAlgorithmException
      */
     public void setMainFile(File mainFile)
     throws IOException, NoSuchAlgorithmException {
@@ -193,6 +197,8 @@ public class FilePair implements Comparable<FilePair> {
     /**
      *
      * @param secFile
+     * @throws java.io.IOException
+     * @throws java.security.NoSuchAlgorithmException
      */
     public void setSecFile(File secFile)
     throws IOException, NoSuchAlgorithmException {
@@ -373,6 +379,7 @@ public class FilePair implements Comparable<FilePair> {
             log(LEVEL_INFO, "Copying file [OS]: "+getPath());
             copy(secFile, new File(mainDir + File.separator + path), keepBackup);
         }
+        
         // TODO Let the user define action if newer == MAIN_BIGGER or SEC_BIGGER (Issue #14)
         // For now, do nothing.
     }
