@@ -15,12 +15,12 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
@@ -68,13 +68,13 @@ public class DirComparator implements PropertyChangeListener {
 	}
     }
 
-    class DirComparatorWorker extends SwingWorker<Vector<FilePair>, String> {
+    class DirComparatorWorker extends SwingWorker<ArrayList<FilePair>, String> {
 	private boolean enableSynchBtn = false;
 	/*
 	 * Main task. Executed in background thread.
 	 */
 	@Override
-	protected Vector<FilePair> doInBackground() {
+	protected ArrayList<FilePair> doInBackground() {
 	    int step = 0;
 	    final int STEPS = 6;
 	    try {
@@ -112,7 +112,7 @@ public class DirComparator implements PropertyChangeListener {
 		setProgress(++step*(100/STEPS));
 		// Step 4 - Comparing data
 		// Compare maps
-		Vector<FilePair> files = new Vector<>(mainDirMap.size());
+		ArrayList<FilePair> files = new ArrayList<>(mainDirMap.size());
 		// Main
 		Iterator<String> iter = mainDirMap.keySet().iterator();
 		FilePair file;
@@ -196,9 +196,9 @@ public class DirComparator implements PropertyChangeListener {
 	 */
 	@Override
 	protected void process(List<String> notes) {
-	    for (String note : notes) {
-			progressMonitor.setNote(note);
-	    }
+            notes.forEach(note -> {
+                progressMonitor.setNote(note);
+            });
 	}
 
 	private void loadNoSynchFiles() {

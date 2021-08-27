@@ -6,7 +6,7 @@
 package itamar.dirsynch;
 
 import static itamar.dirsynch.FilePair.EQUALS;
-import java.util.Vector;
+import java.util.ArrayList;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -34,7 +34,7 @@ public class FileVOTableModel extends DefaultTableModel {
     /**
      * Vector of FilePair's.
      */
-    Vector<FilePair> files;
+    ArrayList<FilePair> files;
 
     /**
      * Sets both the files data and the hideEquals boolean attribute.
@@ -43,15 +43,13 @@ public class FileVOTableModel extends DefaultTableModel {
      * @param hideEquals Boolean meaning if the FilePair's with equals files should
      *                   be hidden or not.
      */
-    public void setFiles(Vector<FilePair> files, boolean hideEquals) {
+    public void setFiles(ArrayList<FilePair> files, boolean hideEquals) {
         this.files = files;
         this.hideEquals = hideEquals;
         setRowCount(0);
-        for (FilePair file : files) {
-            if (hideEquals != true || file.getNewer() != EQUALS) {
-                addRow(getDataVector(file));
-            }
-        }
+        files.stream().filter(file -> (hideEquals != true || file.getNewer() != EQUALS)).forEachOrdered(file -> {
+            addRow(getDataArray(file).toArray());
+        });
     }
 
     /**
@@ -60,14 +58,12 @@ public class FileVOTableModel extends DefaultTableModel {
      * 
      * @return Vector with FilePair's.
      */
-    public Vector<FilePair> getFiles() {
+    public ArrayList<FilePair> getFiles() {
         if (hideEquals) {
-            Vector<FilePair> clean = new Vector<>();
-            for (FilePair filePair : files) {
-                if (!filePair.isEquals()) {
-                    clean.add(filePair);
-                }
-            }
+            ArrayList<FilePair> clean = new ArrayList<>();
+            files.stream().filter(filePair -> (!filePair.isEquals())).forEachOrdered(filePair -> {
+                clean.add(filePair);
+            });
             return clean;
         } else {
             return files;
@@ -83,13 +79,13 @@ public class FileVOTableModel extends DefaultTableModel {
     // I know it's ugly to ignore the "unchecked" warning, but I can't find a better
     // way for now.
     @SuppressWarnings("unchecked")
-    private Vector getDataVector(FilePair file) {
-        Vector v = new Vector();
-        v.add(file.getNewer() != EQUALS);
-        v.add(file.getMainSymbol());
-        v.add(file.getSecSymbol());
-        v.add(file.getPath());
-        return v;
+    private ArrayList getDataArray(FilePair file) {
+        ArrayList array = new ArrayList();
+        array.add(file.getNewer() != EQUALS);
+        array.add(file.getMainSymbol());
+        array.add(file.getSecSymbol());
+        array.add(file.getPath());
+        return array;
     }
 
     /**

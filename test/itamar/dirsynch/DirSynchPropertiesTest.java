@@ -1,4 +1,5 @@
 package itamar.dirsynch;
+
 import static itamar.dirsynch.DirSynchProperties.getLogFile;
 import static itamar.dirsynch.DirSynchProperties.getLogLevel;
 import static itamar.dirsynch.DirSynchProperties.getMainDir;
@@ -14,7 +15,7 @@ import java.nio.file.Paths;
 
 /**
  *
- * @author Administrator
+ * @author Itamar Carvalho
  */
 public class DirSynchPropertiesTest extends TestCase {
     String dirSynchDir = Paths.get(".").toAbsolutePath().normalize().toString();
@@ -22,17 +23,20 @@ public class DirSynchPropertiesTest extends TestCase {
         super(testName);
     }
 
+    @Override
     protected void setUp() throws Exception {
         System.out.println("init");
         String propertiesFile = dirSynchDir + "\\test\\DirSynchTest.properties";
         init(propertiesFile);
     }
 
+    @Override
     protected void tearDown() throws Exception {
     }
 
     /**
-     * Teste do m�todo init, da classe itamar.dirsynch.DirSynchProperties.
+     * Test of method init, of class itamar.dirsynch.DirSynchProperties.
+     * @throws java.lang.Exception
      */
     public void testInitFileNotFound() throws Exception {
         System.out.println("init");
@@ -46,7 +50,7 @@ public class DirSynchPropertiesTest extends TestCase {
     }
 
     /**
-     * Teste do m�todo isHashEnabled, da classe itamar.dirsynch.DirSynchProperties.
+     * Test of method isHashEnabled, of class itamar.dirsynch.DirSynchProperties.
      */
     public void testIsHashEnabled() {
         System.out.println("isHashEnabled");
@@ -57,7 +61,7 @@ public class DirSynchPropertiesTest extends TestCase {
     }
 
     /**
-     * Teste do m�todo isHashOnlySmall, da classe itamar.dirsynch.DirSynchProperties.
+     * Test of method isHashOnlySmall, of class itamar.dirsynch.DirSynchProperties.
      */
     /*public void testIsHashOnlySmall() {
         System.System.out.println("isHashOnlySmall");
@@ -68,7 +72,7 @@ public class DirSynchPropertiesTest extends TestCase {
     }*/
 
 //    /**
-//     * Teste do m�todo getHashMaxSize, da classe itamar.dirsynch.DirSynchProperties.
+//     * Test of method getHashMaxSize, of class itamar.dirsynch.DirSynchProperties.
 //     */
 //    public void testGetHashMaxSize() {
 //        System.System.out.println("getHashMaxSize");
@@ -79,7 +83,7 @@ public class DirSynchPropertiesTest extends TestCase {
 //    }
 
     /**
-     * Teste do m�todo getLogLevel, da classe itamar.dirsynch.DirSynchProperties.
+     * Test of method getLogLevel, of class itamar.dirsynch.DirSynchProperties.
      */
     public void testGetLogLevel() {
         System.out.println("getLogLevel");
@@ -90,7 +94,7 @@ public class DirSynchPropertiesTest extends TestCase {
     }
 
     /**
-     * Teste do m�todo getLogFile, da classe itamar.dirsynch.DirSynchProperties.
+     * Test of method getLogFile, of class itamar.dirsynch.DirSynchProperties.
      */
     public void testGetLogFile() {
         System.out.println("getLogFile");
@@ -101,7 +105,7 @@ public class DirSynchPropertiesTest extends TestCase {
     }
 
     /**
-     * Teste do m�todo getMainDir, da classe itamar.dirsynch.DirSynchProperties.
+     * Test of method getMainDir, of class itamar.dirsynch.DirSynchProperties.
      */
     public void testGetMainDir() {
         System.out.println("getMainDir");
@@ -112,7 +116,7 @@ public class DirSynchPropertiesTest extends TestCase {
     }
 
     /**
-     * Teste do m�todo getSecDir, da classe itamar.dirsynch.DirSynchProperties.
+     * Test of method getSecDir, of class itamar.dirsynch.DirSynchProperties.
      */
     public void testGetSecDir() {
         System.out.println("getSecDir");
@@ -123,7 +127,7 @@ public class DirSynchPropertiesTest extends TestCase {
     }
 
     /**
-     * Teste do m�todo isSubDirsInclude, da classe itamar.dirsynch.DirSynchProperties.
+     * Test of method isSubDirsInclude, of class itamar.dirsynch.DirSynchProperties.
      */
     public void testIsSubDirsInclude() {
         System.out.println("isSubDirsInclude");
@@ -134,7 +138,7 @@ public class DirSynchPropertiesTest extends TestCase {
     }
 
     /**
-     * Teste do m�todo isHideEquals, da classe itamar.dirsynch.DirSynchProperties.
+     * Test of method isHideEquals, of class itamar.dirsynch.DirSynchProperties.
      */
     public void testIsHideEquals() {
         System.out.println("isHideEquals");
@@ -145,7 +149,7 @@ public class DirSynchPropertiesTest extends TestCase {
     }
 
 //    /**
-//     * Teste do m�todo getPropertiesAsString, da classe itamar.dirsynch.DirSynchProperties.
+//     * Test of method getPropertiesAsString, of class itamar.dirsynch.DirSynchProperties.
 //     */
 //    public void testGetPropertiesAsString() {
 //        System.System.out.println("getPropertiesAsString");

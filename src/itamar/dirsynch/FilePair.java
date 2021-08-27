@@ -57,6 +57,8 @@ public class FilePair implements Comparable<FilePair> {
     /**
      * Creates a new instance of FilePair
      * @param path The relative path from the selected dir to the file.
+     * @param mainDir
+     * @param secDir
      */
     public FilePair(String path, File mainDir, File secDir) {
         this.path = path;
@@ -443,7 +445,7 @@ public class FilePair implements Comparable<FilePair> {
     }
     
     private String humanReadableSize(long size) {
-        String hrSize = null;
+        String hrSize;
         DecimalFormat formatter = (DecimalFormat) DecimalFormat.getInstance();
         formatter.setMaximumFractionDigits(3);
         if (size > 1073741824) {

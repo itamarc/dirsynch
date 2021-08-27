@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import java.util.regex.PatternSyntaxException;
@@ -53,7 +53,11 @@ public class MainJFrame extends javax.swing.JFrame {
     private boolean firstLoad = true;
     private final String helpFile = "DirSynch-help.html";
 
-    /** Creates new form MainJFrame */
+    /** Creates new form MainJFrame
+     * @param defaultMainDirPath
+     * @param defaultSecDirPath
+     * @param defaultKeep
+     */
     public MainJFrame(String defaultMainDirPath, String defaultSecDirPath, boolean defaultKeep) {
         initComponents();
         setTitle("DirSynch " + App.VERSION);
@@ -84,7 +88,7 @@ public class MainJFrame extends javax.swing.JFrame {
         showMessageDialog(this, message, "Warning!", WARNING_MESSAGE);
     }
     
-    protected void initOptions(String defaultMainDirPath, String defaultSecDirPath, boolean defaultKeep) {
+    private void initOptions(String defaultMainDirPath, String defaultSecDirPath, boolean defaultKeep) {
         // defaultXXXDirPath comes from command-line parameters and has priority over .properties file
         setMainDirPath((defaultMainDirPath == null ? DirSynchProperties.getMainDir() : defaultMainDirPath));
         setSecDirPath((defaultSecDirPath == null ? DirSynchProperties.getSecDir() : defaultSecDirPath));
@@ -1042,9 +1046,9 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
      * Get the files selected by the user to synchronize.
      * @return A Vector of FilePair with the selected files in the table.
      */
-    protected Vector<FilePair> getSelectedFiles() {
-	Vector<FilePair> selectedFiles = new Vector<>();
-	Vector<FilePair> files = ((FileVOTableModel) jTableFiles.getModel()).getFiles();
+    protected ArrayList<FilePair> getSelectedFiles() {
+	ArrayList<FilePair> selectedFiles = new ArrayList<>();
+	ArrayList<FilePair> files = ((FileVOTableModel) jTableFiles.getModel()).getFiles();
 	jTableFiles.setEnabled(false);
 	for (int i = 0; i < files.size(); i++) {
 	    jTableFiles.setRowSelectionInterval(i, i);
@@ -1068,7 +1072,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
         jBtnSynch.setEnabled(synchStatus);
     }
     
-    protected void setFilesInTable(Vector<FilePair> files) {
+    protected void setFilesInTable(ArrayList<FilePair> files) {
 	((FileVOTableModel) jTableFiles.getModel()).setFiles(files, getHideEquals());
     }
 
@@ -1122,7 +1126,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
                 jTableFiles.getModel().setValueAt(checked, i, 0);
             }
         } else {  // Select only the different files
-            Vector files = ((FileVOTableModel)jTableFiles.getModel()).getFiles();
+            ArrayList files = ((FileVOTableModel)jTableFiles.getModel()).getFiles();
             for (int i = 0; i < files.size(); i++) {
                 if (!((FilePair)files.get(i)).isEquals()) {
                     jTableFiles.getModel().setValueAt(checked, i, 0);
@@ -1137,7 +1141,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     
     private void selectFilesByStatus(short[] statusList) {
         // If the action is to uncheck all or if the "hide equals" option is on, do all
-        Vector files = ((FileVOTableModel)jTableFiles.getModel()).getFiles();
+        ArrayList files = ((FileVOTableModel)jTableFiles.getModel()).getFiles();
         for (int i = 0; i < files.size(); i++) {
             // If the status of the pair is in the list received
             if (statusInList(((FilePair)files.get(i)).getNewer(), statusList)) {
@@ -1194,7 +1198,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
             }
         }
         
-        Vector files = ((FileVOTableModel)jTableFiles.getModel()).getFiles();
+        ArrayList files = ((FileVOTableModel)jTableFiles.getModel()).getFiles();
         for (int i = 0; i < files.size(); i++) {
             // If the path of the pair matches the regexp
             if (regPat.matcher(((FilePair)files.get(i)).getPath()).matches()) {

@@ -13,8 +13,8 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import static java.lang.Thread.currentThread;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
@@ -30,7 +30,7 @@ public class Synchronizer implements PropertyChangeListener {
 
     private MainJFrame mainFrame = null;
     private ProgressMonitor progressMonitor = null;
-    private Vector<FilePair> selFiles = null;
+    private ArrayList<FilePair> selFiles = null;
     private boolean synchTimesSameHash;
     private boolean keepBackup;
 
@@ -59,6 +59,7 @@ public class Synchronizer implements PropertyChangeListener {
     /**
      * Invoked when task's progress property changes.
      */
+    @Override
     public void propertyChange(PropertyChangeEvent evt) {
 	if ("progress".equals(evt.getPropertyName()))  {
 	    int progress = (Integer) evt.getNewValue();
@@ -148,9 +149,9 @@ public class Synchronizer implements PropertyChangeListener {
 	 */
 	@Override
 	protected void process(List<String> notes) {
-	    for (String note : notes) {
-		progressMonitor.setNote(note);
-	    }
+            notes.forEach(note -> {
+                progressMonitor.setNote(note);
+            });
 	}
     }
 }

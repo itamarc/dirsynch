@@ -13,7 +13,6 @@ import static itamar.util.Logger.log;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,16 +41,16 @@ import java.util.regex.Pattern;
  * @author Itamar Carvalho
  */
 public class SynchMapChecker {
-	private static int OBJECT_TYPE_MAP = 3;		// binary 11 (2^0 + 2^1)
-	private static int FILES_DIRS_OPTION = 0;
-	private static int FILES_ONLY_OPTION = 1;
-	private static int DIRS_ONLY_OPTION = 2;
-	private static int PARTIAL_MATCH_MAP = 4;	// binary 100 (2^2)
-	private static int FILE_NAME_OPTION = 0;
-	private static int RELATIVE_PATH_OPTION = 4;
-	private static int CASE_SENSITIVITY_MAP = 8;	// binary 1000 (2^3)
-	private static int CASE_INSENSITIVE_OPTION = 0;
-	private static int CASE_SENSITIVE_OPTION = 8;
+	private static final int OBJECT_TYPE_MAP = 3;           // binary 11 (2^0 + 2^1)
+	private static final int FILES_DIRS_OPTION = 0;
+	private static final int FILES_ONLY_OPTION = 1;
+	private static final int DIRS_ONLY_OPTION = 2;
+	private static final int PARTIAL_MATCH_MAP = 4;         // binary 100 (2^2)
+	private static final int FILE_NAME_OPTION = 0;
+	private static final int RELATIVE_PATH_OPTION = 4;
+	private static final int CASE_SENSITIVITY_MAP = 8;      // binary 1000 (2^3)
+	private static final int CASE_INSENSITIVE_OPTION = 0;
+	private static final int CASE_SENSITIVE_OPTION = 8;
 	/**
 	 * A map with the file names loaded from the nosynch files.
 	 */
@@ -86,28 +85,28 @@ public class SynchMapChecker {
     
     private Map<String, Integer> getNoSynchMap() {
         if (noSynchMap == null) {
-            noSynchMap = new HashMap<String, Integer>();
+            noSynchMap = new HashMap<>();
         }
         return noSynchMap;
     }
 
     private Map<String, Integer> getOnlySynchMap() {
         if (onlySynchMap == null) {
-            onlySynchMap = new HashMap<String, Integer>();
+            onlySynchMap = new HashMap<>();
         }
         return onlySynchMap;
     }
     
     private Map<Pattern, Integer> getWildCardsNoSynch() {
         if (noSynchWildCards == null) {
-            noSynchWildCards = new HashMap<Pattern, Integer>();
+            noSynchWildCards = new HashMap<>();
         }
         return noSynchWildCards;
     }
 
     private Map<Pattern, Integer> getWildCardsOnlySynch() {
         if (onlySynchWildCards == null) {
-            onlySynchWildCards = new HashMap<Pattern, Integer>();
+            onlySynchWildCards = new HashMap<>();
         }
         return onlySynchWildCards;
     }
@@ -131,15 +130,14 @@ public class SynchMapChecker {
 			if (lines[i].startsWith("|")) {
 				wildCards.put(((options & CASE_SENSITIVITY_MAP) == CASE_INSENSITIVE_OPTION ?
 					Pattern.compile(lines[i].substring(1), Pattern.CASE_INSENSITIVE) :
-					Pattern.compile(lines[i].substring(1))),
-					Integer.valueOf(options));
+					Pattern.compile(lines[i].substring(1))), options);
 			} else {
-				map.put(lines[i], Integer.valueOf(options));
+				map.put(lines[i], options);
 			}
 			log(LEVEL_DEBUG,
 				"options="+Integer.toBinaryString(options)+" & CS_MAP="+
 				Integer.toBinaryString(options & CASE_SENSITIVITY_MAP)+
-				" & FD_MAP="+Integer.toBinaryString(options & OBJECT_TYPE_MAP)+
+				" & OT_MAP="+Integer.toBinaryString(options & OBJECT_TYPE_MAP)+
 				" & PM_MAP"+Integer.toBinaryString(options & PARTIAL_MATCH_MAP));
                 }
             }
@@ -161,16 +159,16 @@ public class SynchMapChecker {
 	 * @param onlySynchFiles An array of File objects.
 	 */
 	private void init(File[] noSynchFiles, File[] onlySynchFiles) {
-		for (int i = 0; i < noSynchFiles.length; i++) {
-			if (noSynchFiles[i].isFile() && noSynchFiles[i].canRead()) {
-				loadSynchFile(noSynchFiles[i], getNoSynchMap(), getWildCardsNoSynch());
-			}
-		}
-		for (int i = 0; i < onlySynchFiles.length; i++) {
-			if (onlySynchFiles[i].isFile() && onlySynchFiles[i].canRead()) {
-				loadSynchFile(onlySynchFiles[i], getOnlySynchMap(), getWildCardsOnlySynch());
-			}
-		}
+            for (File noSynchFile : noSynchFiles) {
+                if (noSynchFile.isFile() && noSynchFile.canRead()) {
+                    loadSynchFile(noSynchFile, getNoSynchMap(), getWildCardsNoSynch());
+                }
+            }
+            for (File onlySynchFile : onlySynchFiles) {
+                if (onlySynchFile.isFile() && onlySynchFile.canRead()) {
+                    loadSynchFile(onlySynchFile, getOnlySynchMap(), getWildCardsOnlySynch());
+                }
+            }
 	}
 
 	/**
@@ -181,7 +179,7 @@ public class SynchMapChecker {
 	 * @return True if the file is blocked by some rule.
 	 */
 	public boolean isBlocked(File file, int rootPathSize) {
-		boolean blocked = false;
+		boolean blocked;
 		// By default, there is no onlysynch restriction
 		boolean only = true;
 		// If there are any onlysynch restriction
@@ -206,10 +204,10 @@ public class SynchMapChecker {
 		String fileName = file.getName();
 		String relativePath = file.getPath().substring(rootPathSize);
 		log(LEVEL_DEBUG, "SynchMapChecker.match: " + fileName);
-		int options = 0;
+		int options;
 		boolean match = false;
 		if (map.containsKey(fileName)) {
-			options = map.get(fileName).intValue();
+			options = map.get(fileName);
 			if (((options & OBJECT_TYPE_MAP) == FILES_DIRS_OPTION) ||
 				(((options & OBJECT_TYPE_MAP) == FILES_ONLY_OPTION) && file.isFile()) ||
 				(((options & OBJECT_TYPE_MAP) == DIRS_ONLY_OPTION) && file.isDirectory())) {
@@ -217,7 +215,7 @@ public class SynchMapChecker {
 			}
 		}
 		if (map.containsKey(relativePath)) {
-			options = map.get(relativePath).intValue();
+			options = map.get(relativePath);
 			if (((options & OBJECT_TYPE_MAP) == FILES_DIRS_OPTION) ||
 				(((options & OBJECT_TYPE_MAP) == FILES_ONLY_OPTION) && file.isFile()) ||
 				(((options & OBJECT_TYPE_MAP) == DIRS_ONLY_OPTION) && file.isDirectory())) {
@@ -225,20 +223,19 @@ public class SynchMapChecker {
 			}
 		}
 		if (!match) {
-			for (Iterator<Pattern> iter = wildCardsMap.keySet().iterator(); iter.hasNext();) {
-				Pattern pattern = iter.next();
-				options = wildCardsMap.get(pattern).intValue();
-				if (((options & OBJECT_TYPE_MAP) == FILES_DIRS_OPTION) ||
-					(((options & OBJECT_TYPE_MAP) == FILES_ONLY_OPTION) && file.isFile()) ||
-					(((options & OBJECT_TYPE_MAP) == DIRS_ONLY_OPTION) && file.isDirectory())) {
-					String nameOrPath = (((options & PARTIAL_MATCH_MAP) == RELATIVE_PATH_OPTION) ? relativePath : fileName);
-					if (pattern.matcher(nameOrPath).matches()) {
-						match = true;
-						log(LEVEL_DEBUG, "Match [" + pattern + "]: " + nameOrPath);
-						break;
-					}
-				}
-			}
+                    for (Pattern pattern : wildCardsMap.keySet()) {
+                        options = wildCardsMap.get(pattern);
+                        if (((options & OBJECT_TYPE_MAP) == FILES_DIRS_OPTION) ||
+                                (((options & OBJECT_TYPE_MAP) == FILES_ONLY_OPTION) && file.isFile()) ||
+                                (((options & OBJECT_TYPE_MAP) == DIRS_ONLY_OPTION) && file.isDirectory())) {
+                            String nameOrPath = (((options & PARTIAL_MATCH_MAP) == RELATIVE_PATH_OPTION) ? relativePath : fileName);
+                            if (pattern.matcher(nameOrPath).matches()) {
+                                match = true;
+                                log(LEVEL_DEBUG, "Match [" + pattern + "]: " + nameOrPath);
+                                break;
+                            }
+                        }
+                    }
 		}
 		return match;
 	}
@@ -289,7 +286,7 @@ public class SynchMapChecker {
 			}
 		}
 		log(LEVEL_DEBUG, "Parsed line: "+lines[i]);
-		lines[i].replaceAll("</>", File.pathSeparator);
+		lines[i] = lines[i].replaceAll("</>", File.pathSeparator);
 		return options;
 	}
 }
