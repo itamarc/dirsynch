@@ -2,6 +2,20 @@
  * MainJFrame.java
  *
  * Created on 3 de Agosto de 2006, 20:32
+ * Copyright (C) 2006 Itamar Carvalho
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package itamar.dirsynch;
 
@@ -9,16 +23,20 @@ import static itamar.dirsynch.FilePair.MAIN_NEWER;
 import static itamar.dirsynch.FilePair.ONLY_MAIN;
 import static itamar.dirsynch.FilePair.ONLY_SEC;
 import static itamar.dirsynch.FilePair.SEC_NEWER;
-import itamar.util.Logger;
+import itamar.dirsynch.ui.JDialogHelp;
+import itamar.dirsynch.ui.JPanelLogOpt;
 import static itamar.util.Logger.LEVEL_DEBUG;
 import static itamar.util.Logger.LEVEL_ERROR;
 import static itamar.util.Logger.LEVEL_INFO;
 import static itamar.util.Logger.LEVEL_WARNING;
 import static itamar.util.Logger.log;
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
@@ -51,7 +69,8 @@ public class MainJFrame extends javax.swing.JFrame {
     private File mainDir;
     private File secDir;
     private boolean firstLoad = true;
-    private final String helpFile = "DirSynch-help.html";
+    private JPanelLogOpt jPanelLogOpt;
+    private JDialogHelp jDialogHelp;
 
     /** Creates new form MainJFrame
      * @param defaultMainDirPath
@@ -60,6 +79,9 @@ public class MainJFrame extends javax.swing.JFrame {
      */
     public MainJFrame(String defaultMainDirPath, String defaultSecDirPath, boolean defaultKeep) {
         initComponents();
+        jPanelLogOpt = new JPanelLogOpt();
+        jDialogHelp = new JDialogHelp(this, true);
+        
         setTitle("DirSynch " + App.VERSION);
         jTableFiles.getColumn("Sel").setMaxWidth(30);
         jTableFiles.getColumn("Main").setMaxWidth(30);
@@ -102,37 +124,6 @@ public class MainJFrame extends javax.swing.JFrame {
         jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
     }
 
-    private void selectLogFile() {
-        String userDir = System.getProperty("user.dir");
-        JFileChooser fileDiag = new JFileChooser(userDir);
-        FileFilter ff = new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                if (f.isFile()) {
-                    return f.getName().endsWith(".log");
-                } else {
-                    return true;
-                }
-            }
-
-            @Override
-            public String getDescription() {
-                return "Log Files (*.log)";
-            }
-        };
-        fileDiag.setFileFilter(ff);
-        fileDiag.setDialogTitle("Select log file...");
-        int ret = fileDiag.showOpenDialog(this);
-        if (ret == APPROVE_OPTION) {
-            File logFile = fileDiag.getSelectedFile();
-            if (logFile.getParent().equals(userDir)) {
-                jTxtFldLogFile.setText(logFile.getName());
-            } else {
-                jTxtFldLogFile.setText(logFile.getAbsolutePath());
-            }
-        }
-    }
-
     private void setOptionsInProps() {
         DirSynchProperties.setMainDir(getMainDirPath());
         DirSynchProperties.setSecDir(getSecDirPath());
@@ -143,6 +134,35 @@ public class MainJFrame extends javax.swing.JFrame {
 //        jChkBxMenuItemKeepBackup.setSelected(defaultKeep);
     }
 
+    private boolean openOnlineHelp() {
+        boolean success = true;
+        String url = "https://itamarc.github.io/dirsynch/www/DirSynch-help.html";
+        log(LEVEL_DEBUG, "We're going to this page: " + url);
+
+        String myOS = System.getProperty("os.name").toLowerCase();
+
+        try {
+            if (Desktop.isDesktopSupported()) { // Probably Windows
+                Desktop desktop = Desktop.getDesktop();
+                desktop.browse(new URI(url));
+            } else { // Definitely Non-windows
+                Runtime runtime = Runtime.getRuntime();
+                if (myOS.contains("mac")) { // Apples
+                    runtime.exec("open " + url);
+                } else if (myOS.contains("nix") || myOS.contains("nux")) { // Linux flavours 
+                    runtime.exec("xdg-open " + url);
+                } else {
+                    log(LEVEL_INFO, "I was unable/unwilling to launch a browser in your OS");
+                    success = false;
+                }
+            }
+        } catch (IOException | URISyntaxException eek) {
+            success = false;
+            log(LEVEL_DEBUG, "**Stuff wrongly: " + eek.getMessage());
+        }
+        return success;
+    }
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -151,16 +171,6 @@ public class MainJFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jDialogHelp = new javax.swing.JDialog();
-        jScrollPaneHelp = new javax.swing.JScrollPane();
-        jEdtPaneHelp = new javax.swing.JEditorPane();
-        jPanelLogOpt = new javax.swing.JPanel();
-        jLblLogFile = new javax.swing.JLabel();
-        jTxtFldLogFile = new javax.swing.JTextField();
-        jBtnLogFile = new javax.swing.JButton();
-        jLblLogLevel = new javax.swing.JLabel();
-        jCmbBoxLogLevel = new javax.swing.JComboBox();
-        jChkBoxLogAppend = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jTxtFldSecDir = new javax.swing.JTextField();
@@ -213,86 +223,6 @@ public class MainJFrame extends javax.swing.JFrame {
         jMenuHelp = new javax.swing.JMenu();
         jMenuItemDirSynchHelp = new javax.swing.JMenuItem();
         jMenuItemAbout = new javax.swing.JMenuItem();
-
-        jDialogHelp.setTitle("DirSynch Help");
-        jDialogHelp.setAlwaysOnTop(true);
-        jDialogHelp.setModal(true);
-
-        jScrollPaneHelp.setMinimumSize(new java.awt.Dimension(600, 400));
-        jScrollPaneHelp.setPreferredSize(new java.awt.Dimension(600, 400));
-
-        jEdtPaneHelp.setContentType("text/html");
-        jEdtPaneHelp.setEditable(false);
-        jScrollPaneHelp.setViewportView(jEdtPaneHelp);
-
-        javax.swing.GroupLayout jDialogHelpLayout = new javax.swing.GroupLayout(jDialogHelp.getContentPane());
-        jDialogHelp.getContentPane().setLayout(jDialogHelpLayout);
-        jDialogHelpLayout.setHorizontalGroup(
-            jDialogHelpLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jDialogHelpLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPaneHelp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jDialogHelpLayout.setVerticalGroup(
-            jDialogHelpLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jDialogHelpLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPaneHelp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-
-        jLblLogFile.setText("Log file:");
-
-        jBtnLogFile.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/dir.png"))); // NOI18N
-        jBtnLogFile.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jBtnLogFileActionPerformed(evt);
-            }
-        });
-
-        jLblLogLevel.setText("Log level:");
-
-        jCmbBoxLogLevel.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "None", "Error", "Warning", "Info", "Debug" }));
-        jCmbBoxLogLevel.setSelectedIndex(2);
-
-        jChkBoxLogAppend.setText("Append to file if exists (don't overwrite).");
-
-        javax.swing.GroupLayout jPanelLogOptLayout = new javax.swing.GroupLayout(jPanelLogOpt);
-        jPanelLogOpt.setLayout(jPanelLogOptLayout);
-        jPanelLogOptLayout.setHorizontalGroup(
-            jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelLogOptLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLblLogFile)
-                    .addComponent(jLblLogLevel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelLogOptLayout.createSequentialGroup()
-                        .addComponent(jTxtFldLogFile, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jBtnLogFile, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jCmbBoxLogLevel, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jChkBoxLogAppend))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanelLogOptLayout.setVerticalGroup(
-            jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelLogOptLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLblLogFile)
-                    .addComponent(jTxtFldLogFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jBtnLogFile))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanelLogOptLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jCmbBoxLogLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLblLogLevel))
-                .addGap(6, 6, 6)
-                .addComponent(jChkBoxLogAppend)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("DirSync");
@@ -389,7 +319,7 @@ public class MainJFrame extends javax.swing.JFrame {
         ));
         jTableFiles.setModel(new FileVOTableModel(
             new Object [][] {
-                {false, null, null, null}
+                {new Boolean(false), null, null, null}
             },
             new String [] {
                 "Sel", "Main", "Sec", "File"
@@ -855,14 +785,9 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItemAllActionPerformed
 
     private void jMenuItemDirSynchHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDirSynchHelpActionPerformed
-	try {
-	    jEdtPaneHelp.setPage("file:///" + System.getProperty("user.dir") + File.separator + helpFile);
-	    jEdtPaneHelp.setCaretPosition(0);
-	    jDialogHelp.pack();
-	    jDialogHelp.setVisible(true);
-	} catch (IOException ex) {
-	    log(LEVEL_ERROR, ex);
-	}
+        if (!openOnlineHelp()) {
+            jDialogHelp.setVisible(true);
+        }
     }//GEN-LAST:event_jMenuItemDirSynchHelpActionPerformed
 
     private void jMenuItemAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAboutActionPerformed
@@ -916,22 +841,11 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jBtnLoadActionPerformed
 
 private void jMenuItemLogOptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLogOptActionPerformed
-    jTxtFldLogFile.setText(DirSynchProperties.getLogFile());
-    jCmbBoxLogLevel.setSelectedIndex(DirSynchProperties.getLogLevel());
-    jChkBoxLogAppend.setSelected(DirSynchProperties.isLogFileAppend());
     if (showConfirmDialog(this, jPanelLogOpt, "Log options", OK_CANCEL_OPTION, PLAIN_MESSAGE)
 	    == OK_OPTION) {
-            DirSynchProperties.setLogFile(jTxtFldLogFile.getText());
-            DirSynchProperties.setLogLevel((short)jCmbBoxLogLevel.getSelectedIndex());
-            DirSynchProperties.setLogFileAppend(jChkBoxLogAppend.isSelected());
-            Logger.init((short)jCmbBoxLogLevel.getSelectedIndex(),
-		jTxtFldLogFile.getText(), jChkBoxLogAppend.isSelected());
+        jPanelLogOpt.saveLogOptions();
     }
 }//GEN-LAST:event_jMenuItemLogOptActionPerformed
-
-private void jBtnLogFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnLogFileActionPerformed
-    selectLogFile();
-}//GEN-LAST:event_jBtnLogFileActionPerformed
 
 private void jBtnSelAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBtnSelAllActionPerformed
 	selectAllFiles(true);
@@ -1280,7 +1194,6 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jBtnLoad;
-    private javax.swing.JButton jBtnLogFile;
     private javax.swing.JButton jBtnMainDir;
     private javax.swing.JButton jBtnSecDir;
     private javax.swing.JButton jBtnSelAll;
@@ -1293,20 +1206,14 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     private javax.swing.JButton jBtnUnselAll;
     private javax.swing.JButton jBtnUnselRegexp;
     private javax.swing.JCheckBox jChkBoxHideEquals;
-    private javax.swing.JCheckBox jChkBoxLogAppend;
     private javax.swing.JCheckBox jChkBoxUseHash;
     private javax.swing.JCheckBoxMenuItem jChkBxMenuItemHideEquals;
     private javax.swing.JCheckBoxMenuItem jChkBxMenuItemIncSubdirs;
     private javax.swing.JCheckBoxMenuItem jChkBxMenuItemKeepBackup;
     private javax.swing.JCheckBoxMenuItem jChkBxMenuItemSynchTimesHash;
     private javax.swing.JCheckBoxMenuItem jChkBxMenuItemUseHash;
-    private javax.swing.JComboBox jCmbBoxLogLevel;
-    private javax.swing.JDialog jDialogHelp;
-    private javax.swing.JEditorPane jEdtPaneHelp;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLblLogFile;
-    private javax.swing.JLabel jLblLogLevel;
     private javax.swing.JLabel jLblStatusBar;
     private javax.swing.JMenuBar jMenuBarDirSynch;
     private javax.swing.JMenu jMenuHelp;
@@ -1327,9 +1234,7 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     private javax.swing.JMenu jMenuOptions;
     private javax.swing.JMenu jMenuSelect;
     private javax.swing.JMenu jMenuTools;
-    private javax.swing.JPanel jPanelLogOpt;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPaneHelp;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
@@ -1337,7 +1242,6 @@ private void jBtnUnselRegexpActionPerformed(java.awt.event.ActionEvent evt) {//G
     private javax.swing.JSeparator jSeparator5;
     private javax.swing.JTable jTableFiles;
     private javax.swing.JToolBar jToolBar1;
-    private javax.swing.JTextField jTxtFldLogFile;
     private javax.swing.JTextField jTxtFldMainDir;
     private javax.swing.JTextField jTxtFldSecDir;
     private javax.swing.JPanel statusBar;
