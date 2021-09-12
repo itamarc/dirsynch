@@ -70,7 +70,7 @@ function issuesAsSPAN(issues) {
             issuesDiv += '<span class="issueIdSpan">Issue: <a href="' + issue.url + '">#' + issue.number + "</a> - " + issue.titleHTML + '</span>\n'
             issuesDiv += '<span class="issueCreatedAt">Created at: ' + issue.createdAt + '</span>\n'
             issuesDiv += '<span class="issueAuthor">Author: <a href="' + issue.author.url + '">' + issue.author.login + '</a></span>\n'
-            issuesDiv += '<span class="issuesCommentsCount">Comments count: ' + issue.comments_totalCount + '</span>\n'
+            issuesDiv += '<span class="issuesCommentsCount">Comments: ' + issue.comments_totalCount + '</span>\n'
             issuesDiv += '</div>\n'
         }
         document.getElementById("issues").innerHTML = issuesDiv
@@ -126,7 +126,7 @@ function licenseCondAsUL(conditions) {
             licCondUl += '<LI>' + conditions[i] + '\n'
         }
         licCondUl += "</UL>\n"
-        document.getElementById("licenceConditions").innerHTML = licCondUl
+        document.getElementById("licenseConditions").innerHTML = licCondUl
     }
 }
 
@@ -138,5 +138,20 @@ function readmePublished(publishReadme) {
     }
     if (publishReadme != 'inline') {
         document.getElementById("readme_inline").hidden = true
+    }
+}
+
+function setSmalldivHeight() {
+    if (screen.width > 768) {
+        var bigheight = document.getElementById("bigdiv").offsetHeight;
+        var smlheight = document.getElementById("smalldiv").offsetHeight;
+        console.log(bigheight);
+        console.log(smlheight);
+        if (bigheight > smlheight) {
+            document.getElementById("smalldiv").style.height = bigheight + "px";
+            console.log(document.getElementById("smalldiv").style.height);
+            document.getElementById("license").style.position = "absolute";
+            document.getElementById("license").style.bottom = "0";
+        }
     }
 }
