@@ -1,11 +1,18 @@
 name: Automatic GitHub Pages generation
 
 on:
-  # Trigger on page_build, as well as release created events
+  # Trigger on page_build, as well as release, fork, push, watch and issues events
   page_build:
   release:
+  fork:
+  push:
+  watch:
+  issues:
     types:
-      - created
+      - opened
+      - closed
+      - edited
+      - deleted
   workflow_dispatch:
 jobs:
   update-docs-on-gh-pages-branch:
@@ -32,7 +39,7 @@ jobs:
         # (if not present, uses the 'master' branch)
         # (recomended: use the same branch configured to be used in GH Pages)
         ref: 'gh-pages'
-    - uses: itamarc/action-itemplate-ghpages@v1test
+    - uses: itamarc/action-itemplate-ghpages@v1
       with:
         # The relative path to the folder that contains your site's templates
         # or the identification of the theme you want to use (required)
@@ -47,6 +54,8 @@ jobs:
         pages_branch: 'gh-pages'
         # Name of the output folder where generated html will be stored (required)
         pages_folder: 'docs'
+        # The max number of issues that will be retrieved and shown (0-100, default: '5')
+        max_issues: 10
         # Time zone to calculate the update time (required)
         # (default: America/Sao_Paulo, which is GMT-3 - sorry, I'm brazilian =) )
         timezone: 'America/Sao_Paulo'
@@ -57,7 +66,7 @@ jobs:
         # These files will be copied to the output folder without any change.
         content_to_copy: 'www'
         # The log level, according to the ones defined in java.util.logging.Level. (not required, default 'WARNING')
-        log_level: 'FINER'
+        log_level: 'FINE'
       env:
         # Needed to publish the pages
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
